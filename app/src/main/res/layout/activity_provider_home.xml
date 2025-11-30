@@ -9,11 +9,11 @@
         android:id="@+id/tvWelcome"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"
         android:text="Provider Dashboard"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"
-        android:layout_gravity="center_horizontal"/>
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/btnAddPatient"
@@ -34,7 +34,7 @@
         android:id="@+id/rvPatients"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1" />
 
     <ProgressBar
         android:id="@+id/progressBar"
