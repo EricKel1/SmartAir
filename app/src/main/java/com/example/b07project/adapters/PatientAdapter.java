@@ -40,7 +40,6 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
     public void onBindViewHolder(@NonNull PatientViewHolder holder, int position) {
         Map<String, Object> patient = patients.get(position);
 
-        // -------- Name + DOB + subtitle --------
         String name = (String) patient.get("name");
         String dob  = (String) patient.get("dob");
 
@@ -51,7 +50,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
 
         boolean safetyEnabled = Boolean.TRUE.equals(patient.get("safetyMonitoringEnabled"));
 
-        // -------- PEF circle --------
+        //  PEF circle
         boolean hasPEFData = Boolean.TRUE.equals(patient.get("hasPEFData"));
         if (safetyEnabled && hasPEFData) {
             holder.layoutPefContainer.setVisibility(View.VISIBLE);
@@ -79,7 +78,6 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
                 } else if (lower.equals("red")) {
                     holder.flPefCircle.setBackgroundResource(R.drawable.bg_pef_red);
                 } else {
-                    // optional neutral background if you have one
                     holder.flPefCircle.setBackgroundResource(R.drawable.bg_pef_green);
                 }
             }
@@ -87,7 +85,7 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
             holder.layoutPefContainer.setVisibility(View.GONE);
         }
 
-        // -------- triage badge --------
+        //  triage badge
         boolean hasRecentTriage = Boolean.TRUE.equals(patient.get("hasRecentTriage"));
         if (safetyEnabled && hasRecentTriage) {
             holder.tvTriageBadge.setVisibility(View.VISIBLE);

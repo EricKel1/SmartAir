@@ -69,7 +69,7 @@ public class ProviderUseInviteCodeActivity extends AppCompatActivity {
         
         String providerId = currentUser.getUid();
 
-        // 1. Check if code exists
+        ///Check if code exists
         db.collection("invite_codes").document(code).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (!documentSnapshot.exists()) {
@@ -87,7 +87,7 @@ public class ProviderUseInviteCodeActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // 3. Get child info
+                    /// Get child info
                     String childName = documentSnapshot.getString("child");
                     String parentUid = documentSnapshot.getString("uid");
 
@@ -97,7 +97,7 @@ public class ProviderUseInviteCodeActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // 4. Find the child document
+                    ///Find the child document
                     db.collection("children")
                             .whereEqualTo("name", childName)
                             .whereEqualTo("parentId", parentUid)
@@ -112,7 +112,7 @@ public class ProviderUseInviteCodeActivity extends AppCompatActivity {
                                 DocumentSnapshot childDoc = querySnapshot.getDocuments().get(0);
                                 String childId = childDoc.getId();
 
-                                // 5. Add child to provider's list
+                                ///Add child to provider's list
                                 db.collection("users").document(providerId)
                                         .update("childIds", FieldValue.arrayUnion(childId))
                                         .addOnSuccessListener(aVoid -> {

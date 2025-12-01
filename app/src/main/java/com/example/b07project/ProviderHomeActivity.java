@@ -173,7 +173,7 @@ public class ProviderHomeActivity extends AppCompatActivity {
         }
     }
 
-    /** Get most recent PEF reading for this child */
+    ///Get most recent PEF reading for this child
     private void loadLatestPEFForChild(String childId, Map<String, Object> patient) {
         db.collection("pef_readings")
                 .whereEqualTo("userId", childId)
@@ -194,7 +194,7 @@ public class ProviderHomeActivity extends AppCompatActivity {
                 });
     }
 
-    /** Get latest triage session; show badge if latest decision was “emergency” */
+    ///Get latest triage session; show badge if latest decision was “emergency”
     private void loadLatestTriageForChild(String childId, Map<String, Object> patient) {
         db.collection("triage_sessions")
                 .whereEqualTo("userId", childId)
@@ -215,8 +215,7 @@ public class ProviderHomeActivity extends AppCompatActivity {
                     }
                 });
     }
-
-    /** Fallback: Read child's DOB from users/{childUid} if not present in children/{childUid} */
+    ///Read child's DOB from users/{childUid} if not present in children/{childUid}
     private void fetchDobFromUsers(String childUid, Map<String, Object> patient) {
         db.collection("users").document(childUid).get()
                 .addOnSuccessListener(userDoc -> {

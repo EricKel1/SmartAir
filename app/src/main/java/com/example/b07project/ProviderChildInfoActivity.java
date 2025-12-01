@@ -24,6 +24,7 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
     private TextView tvViewingChild;
     private TextView tvChildName;
     private LinearLayout containerItems;
+    private Button btnSignOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,13 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
         tvViewingChild = findViewById(R.id.tvViewingChild);
         tvChildName = findViewById(R.id.tvChildName);
         containerItems = findViewById(R.id.containerItems);
+        btnSignOut = findViewById(R.id.btnSignOut);
+
+        btnSignOut.setOnClickListener(v -> {
+            com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+            startActivity(new android.content.Intent(this, LoginActivity.class));
+            finish();
+        });
     }
 
     private void loadSharingSettings() {
