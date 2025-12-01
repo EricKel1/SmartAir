@@ -117,8 +117,16 @@ public class ProviderHomeActivity extends AppCompatActivity {
                             String id = childDoc.getId();
                             patient.put("id", id);
                             patient.put("name", childDoc.getString("name"));
-                            // Firestore stores DOB under "dateOfBirth"; map to adapter's "dob" key
-                            patient.put("dob", childDoc.getString("dateOfBirth"));
+                            // Map DOB with fallbacks for older records
+                            String dobVal = childDoc.getString("dateOfBirth");
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                dobVal = childDoc.getString("dob");
+                            }
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                Object ageField = childDoc.get("age");
+                                if (ageField != null) dobVal = String.valueOf(ageField);
+                            }
+                            patient.put("dob", dobVal);
 
                             // sharingSettings.pef = “Safety & Monitoring” switch
                             Map<String, Object> sharing =
@@ -134,6 +142,11 @@ public class ProviderHomeActivity extends AppCompatActivity {
                             patient.put("hasRecentTriage", false);
 
                             patientsList.add(patient);
+
+                            // If DOB still empty, try child's user profile as a last resort
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                fetchDobFromUsers(id, patient);
+                            }
 
                             // Only load badge data if parent has enabled Safety & Monitoring
                             if (safetyEnabled) {
@@ -197,6 +210,23 @@ public class ProviderHomeActivity extends AppCompatActivity {
 
                         if (hasIncident) {
                             patient.put("hasRecentTriage", true);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+    }
+
+    /** Fallback: Read child's DOB from users/{childUid} if not present in children/{childUid} */
+    private void fetchDobFromUsers(String childUid, Map<String, Object> patient) {
+        db.collection("users").document(childUid).get()
+                .addOnSuccessListener(userDoc -> {
+                    if (userDoc.exists()) {
+                        String dobFromUser = userDoc.getString("dateOfBirth");
+                        if (dobFromUser == null || dobFromUser.trim().isEmpty()) {
+                            dobFromUser = userDoc.getString("dob");
+                        }
+                        if (dobFromUser != null && !dobFromUser.trim().isEmpty()) {
+                            patient.put("dob", dobFromUser.trim());
                             adapter.notifyDataSetChanged();
                         }
                     }
