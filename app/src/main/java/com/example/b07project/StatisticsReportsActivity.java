@@ -25,6 +25,14 @@ public class StatisticsReportsActivity extends AppCompatActivity {
 
         initializeViews();
         setupViewPager();
+
+        BackToParent bh = new BackToParent();
+        findViewById(R.id.btnBack3).setOnClickListener(v -> finish());
+
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTopColored("#2596be");
     }
 
     private void initializeViews() {

@@ -20,6 +20,10 @@ public class ParentSignupActivity extends AppCompatActivity {
                     .replace(R.id.fragment_container_view, new ParentInfoFragment())
                     .commit();
         }
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 
     @Override

@@ -34,6 +34,12 @@ public class IncidentHistoryActivity extends AppCompatActivity {
         
         initializeViews();
         loadIncidents();
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        BackToParent bh = new BackToParent();
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 
     private void initializeViews() {

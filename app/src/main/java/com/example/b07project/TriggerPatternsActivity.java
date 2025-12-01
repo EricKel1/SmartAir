@@ -1,5 +1,6 @@
 package com.example.b07project;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -52,6 +53,14 @@ public class TriggerPatternsActivity extends AppCompatActivity {
 
         // Default to this month
         setTimeRange(TimeRange.MONTH);
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        com.example.b07project.TopMover mover = new com.example.b07project.TopMover(this);
+        mover.adjustTop();
+
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+
+
     }
 
     private void initializeViews() {
@@ -212,5 +221,27 @@ public class TriggerPatternsActivity extends AppCompatActivity {
         tvNoData.setVisibility(View.VISIBLE);
         cardTopTriggers.setVisibility(View.GONE);
         cardSeverityCorrelation.setVisibility(View.GONE);
+    }
+
+    public static class TopMover {
+        private Activity activity;
+
+        public TopMover(Activity activity) {
+            this.activity = activity;
+        }
+
+        public void adjustForStatusBar() {
+            // Use the activity reference
+            View rootView = activity.getWindow().getDecorView().findViewById(android.R.id.content);
+
+            int statusBarHeight = 0;
+            int resourceId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
+            if (resourceId > 0) {
+                statusBarHeight = activity.getResources().getDimensionPixelSize(resourceId);
+            }
+
+            // Apply top padding to prevent UI from overlapping the status bar
+            rootView.setPadding(0, statusBarHeight, 0, 0);
+        }
     }
 }

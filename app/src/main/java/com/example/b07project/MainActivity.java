@@ -19,5 +19,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (IllegalStateException e) {
             Log.e("FirebaseCheck", "Firebase NOT initialized: " + e.getMessage());
         }
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 }

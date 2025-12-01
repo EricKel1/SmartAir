@@ -27,7 +27,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Learn the proper way to use your inhaler"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:layout_marginTop="4dp"
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
             app:layout_constraintStart_toStartOf="parent"
@@ -64,7 +64,7 @@
                     android:id="@+id/youtubePlayerView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="14dp"
                     app:enableAutomaticInitialization="false"
                     app:handleNetworkEvents="true"/>
 
@@ -73,7 +73,7 @@
                     android:layout_height="wrap_content"
                     android:text="Watch this demonstration for proper MDI (metered-dose inhaler) technique"
                     android:textSize="12sp"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="14dp"
                     android:textColor="#757575"/>
 
             </LinearLayout>
@@ -140,7 +140,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="• Remove cap and shake inhaler well\n• Check the dose counter\n• Breathe out fully (away from inhaler)"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
@@ -195,7 +195,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="• Form a tight seal with your lips\n• Keep tongue flat, below mouthpiece\n• Tilt head back slightly"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
@@ -250,7 +250,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="• Press down on canister once\n• Start breathing in SLOWLY and deeply\n• Continue breathing in for 3-5 seconds"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
@@ -305,7 +305,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="• Remove inhaler from mouth\n• Hold breath for ~10 seconds (or as long as comfortable)\n• This lets medicine reach deep into lungs"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
@@ -360,7 +360,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="• Breathe out slowly\n• If taking another puff, wait 30-60 seconds\n• Repeat steps 1-4 if directed"
-                        android:textSize="14sp"
+                        android:textSize="16sp"
                         android:layout_marginTop="4dp"/>
 
                 </LinearLayout>
@@ -399,26 +399,26 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="A spacer makes it easier to use your inhaler correctly:"
-                    android:textSize="14sp"
-                    android:layout_marginTop="8dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="• Attach inhaler to spacer\n• Shake and press canister into spacer\n• Seal lips around spacer mouthpiece (or place mask over nose/mouth)\n• Breathe in slowly, hold for 10 seconds\n• Younger children: Take 5-6 normal breaths through mask\n• Clean spacer weekly with mild soap"
-                    android:textSize="14sp"
                     android:layout_marginTop="8dp"
-                    android:lineSpacingExtra="4dp"/>
+                    android:text="A spacer makes it easier to use your inhaler correctly:"
+                    android:textSize="16sp" />
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="✓ Spacers help more medicine reach your lungs and reduce side effects"
-                    android:textSize="12sp"
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="• Attach inhaler to spacer\n• Shake and press canister into spacer\n• Seal lips around spacer mouthpiece (or place mask over nose/mouth)\n• Breathe in slowly, hold for 10 seconds\n• Younger children: Take 5-6 normal breaths through mask\n• Clean spacer weekly with mild soap"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:textStyle="italic"
-                    android:textColor="#4CAF50"/>
+                    android:text="✓ Spacers help more medicine reach your lungs and reduce side effects"
+                    android:textColor="#00AF07"
+                    android:textSize="16sp"
+                    android:textStyle="italic" />
 
             </LinearLayout>
 
@@ -455,7 +455,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Use this timer to practice holding your breath for 10 seconds"
-                    android:textSize="14sp"
+                    android:textSize="16sp"
                     android:layout_marginTop="4dp"/>
 
                 <TextView

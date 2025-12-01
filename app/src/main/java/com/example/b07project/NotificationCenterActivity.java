@@ -9,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.b07project.main.WelcomeActivity;
 import com.example.b07project.models.AppNotification;
 import com.example.b07project.repository.NotificationRepository;
 import com.google.firebase.auth.FirebaseAuth;
@@ -28,6 +30,7 @@ public class NotificationCenterActivity extends AppCompatActivity {
     private TextView tvEmpty;
     private NotificationRepository repository;
     private NotificationAdapter adapter;
+    BackToParent bh = new BackToParent();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +45,14 @@ public class NotificationCenterActivity extends AppCompatActivity {
         adapter = new NotificationAdapter();
         rvNotifications.setAdapter(adapter);
 
+        findViewById(R.id.btnBack2).setOnClickListener(v -> finish());
+
         setupSwipeToDelete();
         loadNotifications();
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 
     private void setupSwipeToDelete() {

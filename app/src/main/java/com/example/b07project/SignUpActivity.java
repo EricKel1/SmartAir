@@ -36,6 +36,10 @@ public class SignUpActivity extends AppCompatActivity {
         
         initializeViews();
         setupListeners();
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
     
     private void initializeViews() {

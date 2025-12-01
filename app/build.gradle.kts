@@ -40,19 +40,29 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.firestore)
-    testImplementation(libs.junit)
-    testImplementation("org.mockito:mockito-core:5.5.0")
-    testImplementation("org.mockito:mockito-inline:5.2.0")
-    androidTestImplementation(libs.ext.junit)
-    androidTestImplementation(libs.espresso.core)
+
+    // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.messaging)
-    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
+
+    // Material and UI
     implementation("com.google.android.material:material:1.12.0")
     implementation("nl.dionsegijn:konfetti-xml:2.0.4")
+    implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:13.0.0")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Utilities
     implementation("androidx.work:work-runtime:2.9.0")
     implementation("com.google.guava:guava:31.1-android")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // Unit tests
+    testImplementation(libs.junit)
+    testImplementation("org.mockito:mockito-core:5.5.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+
+    // Android instrumented tests
+    androidTestImplementation(libs.ext.junit)
+    androidTestImplementation(libs.espresso.core)
 }

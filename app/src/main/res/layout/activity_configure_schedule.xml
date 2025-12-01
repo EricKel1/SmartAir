@@ -118,5 +118,15 @@
             android:padding="12dp"
             android:layout_marginTop="24dp"/>
 
+        <Button
+            android:id="@+id/btnBackCS"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:backgroundTint="@android:color/white"
+            android:padding="12dp"
+            android:text="Back"
+            android:textColor="#1A237E" />
+
     </LinearLayout>
 </ScrollView>

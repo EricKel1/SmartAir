@@ -33,7 +33,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     private TextView tvAdherenceDetails;
     private RecyclerView rvAdherenceCalendar;
     private ImageView btnConfigureSchedule;
-    
+
     private PEFRepository pefRepository;
     private ScheduleRepository scheduleRepository;
     private ControllerMedicineRepository controllerRepository;
@@ -56,6 +56,13 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         setupListeners();
         loadChildData();
         loadSharingSettings();
+        BackToParent bh = new BackToParent();
+        findViewById(R.id.btnBack4).setOnClickListener(v -> bh.backTo(this, ParentDashboardActivity.class));
+
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+//        TopMover mover = new TopMover(this);
+//        mover.adjustTop();
         loadAdherenceData();
     }
 
@@ -66,9 +73,9 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         tvAdherenceDetails = findViewById(R.id.tvAdherenceDetails);
         rvAdherenceCalendar = findViewById(R.id.rvAdherenceCalendar);
         rvAdherenceCalendar.setLayoutManager(new GridLayoutManager(this, 7)); // 7 days a week
-        
+
         btnConfigureSchedule = findViewById(R.id.btnConfigureSchedule);
-        
+
         if (childName != null) {
             tvChildNameHeader.setText(childName);
         }
@@ -89,14 +96,14 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         setupCardListener(R.id.cardHistoryCheckIn, SymptomHistoryActivity.class);
         setupCardListener(R.id.cardHistoryPEF, PEFHistoryActivity.class);
         setupCardListener(R.id.cardHistoryIncidents, IncidentHistoryActivity.class);
-        
+
         // Schedule Config
         View.OnClickListener configListener = v -> {
             Intent intent = new Intent(this, ConfigureScheduleActivity.class);
             intent.putExtra("EXTRA_CHILD_ID", childId);
             startActivity(intent);
         };
-        
+
         btnConfigureSchedule.setOnClickListener(configListener);
         findViewById(R.id.cardAdherence).setOnClickListener(configListener);
     }
@@ -132,7 +139,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        
+
         Date startDate = cal.getTime();
 
         controllerRepository.getLogsSince(childId, startDate, new ControllerMedicineRepository.LoadCallback() {
@@ -140,17 +147,17 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
             public void onSuccess(List<ControllerMedicineLog> logs) {
                 List<AdherenceAdapter.DayStatus> dayStatuses = new ArrayList<>();
                 SimpleDateFormat dayFormat = new SimpleDateFormat("d", Locale.getDefault());
-                
+
                 Calendar iteratorCal = (Calendar) cal.clone();
                 Calendar today = Calendar.getInstance();
-                
+
                 // Normalize schedule start date
                 Date scheduleStart = schedule.getStartDate();
                 if (scheduleStart == null) {
                     // If no start date, assume it started 30 days ago (so we see data)
-                    scheduleStart = startDate; 
+                    scheduleStart = startDate;
                 }
-                
+
                 // Iterate through the last 30 days
                 for (int i = 0; i < 30; i++) {
                     Date currentDate = iteratorCal.getTime();
@@ -186,7 +193,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
 
                 AdherenceAdapter adapter = new AdherenceAdapter(ParentChildDashboardActivity.this, dayStatuses);
                 rvAdherenceCalendar.setAdapter(adapter);
-                
+
                 tvAdherenceDetails.setText("Last 30 Days History");
             }
 

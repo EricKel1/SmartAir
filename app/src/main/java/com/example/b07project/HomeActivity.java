@@ -106,6 +106,7 @@ public class HomeActivity extends AppCompatActivity {
         loadMedicationSchedule();
         checkNotificationPermission();
         loadSharingSettings();
+
     }
 
     private void loadMedicationSchedule() {
@@ -199,6 +200,7 @@ public class HomeActivity extends AppCompatActivity {
                     android.util.Log.d("sharedpermissionsindicator", "loadSharingSettings: Document does not exist");
                 }
             });
+
     }
 
     private void updateBadges(java.util.Map<String, Boolean> settings) {

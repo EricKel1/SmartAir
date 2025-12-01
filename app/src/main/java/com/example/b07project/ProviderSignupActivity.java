@@ -10,10 +10,12 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.b07project.main.WelcomeActivity;
 import com.example.b07project.repository.SignupRepository;
 
 public class ProviderSignupActivity extends AppCompatActivity {
-
+    BackToParent bh = new BackToParent();
     private EditText etName, etEmail, etPassword, etConfirmPassword;
     private Button btnSignUp;
     private ProgressBar progressBar;
@@ -33,9 +35,13 @@ public class ProviderSignupActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.btnSignUp);
         progressBar = findViewById(R.id.progressBar);
 
-        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+        findViewById(R.id.btnBack).setOnClickListener(v -> bh.backTo(this, WelcomeActivity.class));
 
         btnSignUp.setOnClickListener(v -> attemptSignup());
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 
     private void attemptSignup() {

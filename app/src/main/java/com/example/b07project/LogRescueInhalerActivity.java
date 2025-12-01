@@ -49,7 +49,10 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     
     private RadioGroup rgMedicineType, rgPostDoseStatus;
     private RadioButton rbRescue, rbController, rbBetter, rbSame, rbWorse;
-    private TextView tvTimestamp, tvDoseCount, tvMessage;
+    private ConstraintLayout controllerOnlySection;
+    private TextView tvTimestamp, tvDoseCount, tvMessage, tvScheduledTime;
+    private Button btnSelectTime;
+    private CheckBox cbTakenOnTime;
     private CheckBox cbTriggerExercise, cbTriggerColdAir, cbTriggerPets, cbTriggerPollen;
     private CheckBox cbTriggerStress, cbTriggerSmoke, cbTriggerWeather, cbTriggerDust;
     private RatingBar ratingBarBreath;
@@ -68,7 +71,7 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     private SimpleDateFormat timeFormat;
     private KonfettiView konfettiView;
     private String childId;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,7 +92,11 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         motivationService.setBadgeEarnedCallback(badge -> {
             runOnUiThread(() -> showBadgeEarnedNotification(badge));
         });
-        
+
+
+        findViewById(R.id.btnBackLM).setOnClickListener(v -> finish());
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
         timestamp = new Date();
         updateTimestampDisplay();
         updateDoseCountDisplay();
@@ -101,9 +108,13 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         rgMedicineType = findViewById(R.id.rgMedicineType);
         rbRescue = findViewById(R.id.rbRescue);
         rbController = findViewById(R.id.rbController);
+        controllerOnlySection = findViewById(R.id.controllerOnlySection);
         tvTimestamp = findViewById(R.id.tvTimestamp);
         tvDoseCount = findViewById(R.id.tvDoseCount);
         tvMessage = findViewById(R.id.tvMessage);
+        tvScheduledTime = findViewById(R.id.tvScheduledTime);
+        btnSelectTime = findViewById(R.id.btnSelectTime);
+        cbTakenOnTime = findViewById(R.id.cbTakenOnTime);
         cbTriggerExercise = findViewById(R.id.cbTriggerExercise);
         cbTriggerColdAir = findViewById(R.id.cbTriggerColdAir);
         cbTriggerPets = findViewById(R.id.cbTriggerPets);
@@ -127,6 +138,18 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+        rgMedicineType.setOnCheckedChangeListener((group, checkedId) -> {
+            boolean isController = checkedId == R.id.rbController;
+            controllerOnlySection.setVisibility(isController ? View.VISIBLE : View.GONE);
+            if (!isController) {
+                scheduledTime = null;
+                tvScheduledTime.setText("Not selected");
+                cbTakenOnTime.setChecked(false);
+            }
+        });
+        
+        btnSelectTime.setOnClickListener(v -> showTimePickerDialog());
+        
         btnDecrease.setOnClickListener(v -> {
             if (doseCount > 1) {
                 doseCount--;
@@ -143,7 +166,34 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         
         btnSave.setOnClickListener(v -> saveLog());
     }
-    
+
+    private void showTimePickerDialog() {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(
+            this,
+            (view, selectedHour, selectedMinute) -> {
+                Calendar scheduledCal = Calendar.getInstance();
+                scheduledCal.set(Calendar.HOUR_OF_DAY, selectedHour);
+                scheduledCal.set(Calendar.MINUTE, selectedMinute);
+                scheduledCal.set(Calendar.SECOND, 0);
+                scheduledTime = scheduledCal.getTime();
+                tvScheduledTime.setText(timeFormat.format(scheduledTime));
+
+                // Auto-detect if taken on time (within 30 minutes)
+                long timeDiff = Math.abs(timestamp.getTime() - scheduledTime.getTime());
+                boolean onTime = timeDiff <= 30 * 60 * 1000; // 30 minutes in milliseconds
+                cbTakenOnTime.setChecked(onTime);
+            },
+            hour,
+            minute,
+            false
+        );
+        timePickerDialog.show();
+    }
+
     private void updateTimestampDisplay() {
         tvTimestamp.setText(dateFormat.format(timestamp));
     }
@@ -173,7 +223,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         }
         
         boolean isController = rbController.isChecked();
-        
+
+        if (isController && scheduledTime == null) {
+            showMessage("Please select a scheduled time", true);
+            return;
+        }
+
         showLoading(true);
         
         String notes = etNotes.getText().toString().trim();
@@ -215,8 +270,8 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                 targetUserId,
                 timestamp,
                 doseCount,
-                null,
-                false,
+                scheduledTime,
+                cbTakenOnTime.isChecked(),
                 triggers,
                 notes.isEmpty() ? null : notes
             );

@@ -5,6 +5,20 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- Back button next to title -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Back"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="#1976D2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="@+id/tvTitle"/>
+
+    <!-- Title text -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
@@ -12,8 +26,10 @@
         android:text="Medicine Inventory"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="16dp"/>
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvInventory"

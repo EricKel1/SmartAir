@@ -61,7 +61,11 @@ public class ConfigureScheduleActivity extends AppCompatActivity {
         fetchChildren();
         loadInventoryMedicines(null);
         loadExistingSchedule();
-        
+
+        BackToParent bh = new BackToParent();
+        findViewById(R.id.btnBackCS).setOnClickListener(v -> finish());
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
         btnSaveSchedule.setOnClickListener(v -> saveSchedule());
     }
 

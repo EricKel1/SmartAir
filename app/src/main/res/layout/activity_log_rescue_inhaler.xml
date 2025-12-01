@@ -8,60 +8,140 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="24dp">
+
+
+        <ImageButton
+            android:id="@+id/btnBackLM"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="28dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Back"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:layout_constraintEnd_toStartOf="@+id/tvTitle"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="#1976D2" />
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_width="323dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="16dp"
             android:text="Log Medicine"
+            android:textColor="#1976D2"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="#1976D2"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/tvSubtitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="Choose medicine type and record your dose"
             android:textSize="14sp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
         <RadioGroup
             android:id="@+id/rgMedicineType"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/tvSubtitle">
 
             <RadioButton
                 android:id="@+id/rbRescue"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Rescue Inhaler"
+                android:layout_weight="1"
                 android:checked="true"
-                android:textSize="16sp"
-                android:padding="12dp"/>
+                android:padding="12dp"
+                android:text="Rescue Inhaler"
+                android:textSize="16sp" />
 
             <RadioButton
                 android:id="@+id/rbController"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:padding="12dp"
                 android:text="Controller Medicine"
-                android:textSize="16sp"
-                android:padding="12dp"/>
+                android:textSize="16sp" />
         </RadioGroup>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/controllerOnlySection"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:padding="16dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/rgMedicineType">
+
+            <TextView
+                android:id="@+id/tvScheduledLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Scheduled Time"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btnSelectTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Select Time"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvScheduledLabel" />
+
+            <TextView
+                android:id="@+id/tvScheduledTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="Not selected"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnSelectTime" />
+
+            <CheckBox
+                android:id="@+id/cbTakenOnTime"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Taken on time"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvScheduledTime" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <TextView
             android:id="@+id/tvTimestampLabel"
@@ -72,302 +152,302 @@
             android:textStyle="bold"
             android:layout_marginTop="24dp"
             app:layout_constraintTop_toBottomOf="@id/rgMedicineType"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/tvTimestamp"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@android:drawable/dialog_holo_light_frame"
+            android:padding="12dp"
             android:text="Current time will appear here"
             android:textSize="18sp"
-            android:padding="12dp"
-            android:background="@android:drawable/dialog_holo_light_frame"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTimestampLabel"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvTimestampLabel" />
 
         <TextView
             android:id="@+id/tvDoseLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Number of Puffs"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTimestamp"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvTimestamp" />
 
         <LinearLayout
             android:id="@+id/layoutDoseCounter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvDoseLabel"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/tvDoseLabel">
 
             <Button
                 android:id="@+id/btnDecrease"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
+                android:backgroundTint="#F44336"
                 android:text="-"
-                android:textSize="24sp"
-                android:backgroundTint="#F44336"/>
+                android:textSize="24sp" />
 
             <TextView
                 android:id="@+id/tvDoseCount"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="1"
-                android:textSize="36sp"
-                android:textStyle="bold"
+                android:layout_weight="1"
                 android:gravity="center"
-                android:textColor="#1976D2"/>
+                android:text="1"
+                android:textColor="#1976D2"
+                android:textSize="36sp"
+                android:textStyle="bold" />
 
             <Button
                 android:id="@+id/btnIncrease"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
+                android:backgroundTint="#4CAF50"
                 android:text="+"
-                android:textSize="24sp"
-                android:backgroundTint="#4CAF50"/>
+                android:textSize="24sp" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/tvTriggersLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="@string/label_triggers"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/layoutDoseCounter"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/layoutDoseCounter" />
 
         <CheckBox
             android:id="@+id/cbTriggerExercise"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/trigger_exercise"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTriggersLabel"
+            android:text="@string/trigger_exercise"
+            app:layout_constraintEnd_toStartOf="@id/cbTriggerColdAir"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/cbTriggerColdAir"/>
+            app:layout_constraintTop_toBottomOf="@id/tvTriggersLabel" />
 
         <CheckBox
             android:id="@+id/cbTriggerColdAir"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/trigger_cold_air"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvTriggersLabel"
+            android:text="@string/trigger_cold_air"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cbTriggerExercise"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvTriggersLabel" />
 
         <CheckBox
             android:id="@+id/cbTriggerPets"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_pets"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerExercise"
+            app:layout_constraintEnd_toStartOf="@id/cbTriggerPollen"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/cbTriggerPollen"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerExercise" />
 
         <CheckBox
             android:id="@+id/cbTriggerPollen"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_pollen"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerColdAir"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cbTriggerPets"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerColdAir" />
 
         <CheckBox
             android:id="@+id/cbTriggerStress"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_stress"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerPets"
+            app:layout_constraintEnd_toStartOf="@id/cbTriggerSmoke"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/cbTriggerSmoke"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerPets" />
 
         <CheckBox
             android:id="@+id/cbTriggerSmoke"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_smoke"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerPollen"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cbTriggerStress"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerPollen" />
 
         <CheckBox
             android:id="@+id/cbTriggerWeather"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_weather"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerStress"
+            app:layout_constraintEnd_toStartOf="@id/cbTriggerDust"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/cbTriggerDust"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerStress" />
 
         <CheckBox
             android:id="@+id/cbTriggerDust"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/trigger_dust"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerSmoke"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/cbTriggerWeather"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerSmoke" />
 
         <TextView
             android:id="@+id/tvPostDoseLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Post-Dose Check"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/cbTriggerDust"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/cbTriggerDust" />
 
         <TextView
             android:id="@+id/tvStatusQuestion"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:text="How do you feel after the dose?"
             android:textSize="14sp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvPostDoseLabel"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvPostDoseLabel" />
 
         <RadioGroup
             android:id="@+id/rgPostDoseStatus"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvStatusQuestion"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/tvStatusQuestion">
 
             <RadioButton
                 android:id="@+id/rbBetter"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Better"
-                android:textColor="#2E7D32"/>
+                android:textColor="#2E7D32" />
 
             <RadioButton
                 android:id="@+id/rbSame"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Same"
-                android:textColor="#F57F17"/>
+                android:textColor="#F57F17" />
 
             <RadioButton
                 android:id="@+id/rbWorse"
                 android:layout_width="0dp"
-                android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="Worse"
-                android:textColor="#C62828"/>
+                android:textColor="#C62828" />
         </RadioGroup>
 
         <TextView
             android:id="@+id/tvBreathRatingLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="Breath Rating (1-5)"
             android:textSize="14sp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/rgPostDoseStatus"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/rgPostDoseStatus" />
 
         <RatingBar
             android:id="@+id/ratingBarBreath"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:numStars="5"
-            android:stepSize="1"
-            android:rating="0"
             android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvBreathRatingLabel"
+            android:numStars="5"
+            android:rating="0"
+            android:stepSize="1"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvBreathRatingLabel" />
 
         <TextView
             android:id="@+id/tvNotesLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:text="Notes (Optional)"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
-            app:layout_constraintTop_toBottomOf="@id/ratingBarBreath"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/ratingBarBreath" />
 
         <EditText
             android:id="@+id/etNotes"
             android:layout_width="0dp"
             android:layout_height="100dp"
-            android:hint="How are you feeling? What were you doing?"
+            android:layout_marginTop="8dp"
             android:gravity="top|start"
+            android:hint="How are you feeling? What were you doing?"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:padding="12dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvNotesLabel"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/tvNotesLabel" />
 
         <Button
             android:id="@+id/btnSave"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="#1976D2"
+            android:paddingVertical="16dp"
             android:text="Save Log"
             android:textSize="18sp"
-            android:paddingVertical="16dp"
-            android:backgroundTint="#1976D2"
-            android:layout_marginTop="32dp"
-            app:layout_constraintTop_toBottomOf="@id/etNotes"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/etNotes" />
 
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:visibility="gone"
             android:layout_marginTop="16dp"
-            app:layout_constraintTop_toBottomOf="@id/btnSave"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            app:layout_constraintTop_toBottomOf="@id/btnSave" />
 
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:visibility="gone"
             android:layout_marginTop="8dp"
+            android:textAlignment="center"
             android:textSize="14sp"
-            app:layout_constraintTop_toBottomOf="@id/progress"
-            app:layout_constraintStart_toStartOf="parent"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/progress" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

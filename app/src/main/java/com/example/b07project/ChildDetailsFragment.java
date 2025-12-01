@@ -39,6 +39,7 @@ public class ChildDetailsFragment extends Fragment {
             childNumber = getArguments().getInt("childNumber");
             totalChildren = getArguments().getInt("totalChildren");
         }
+
     }
 
     @Nullable
@@ -103,6 +104,7 @@ public class ChildDetailsFragment extends Fragment {
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
             requireActivity().getSupportFragmentManager().popBackStack();
         });
+
 
         return view;
     }

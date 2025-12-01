@@ -42,7 +42,11 @@ public class ProviderHomeActivity extends AppCompatActivity {
         initializeViews();
         setupRecyclerView();
         setupListeners();
-
+        // loadPatients(); // Removed because onResume calls it
+        //To move the top elements under the phone's nav bar so buttons and whatnot
+        //can be pressed
+        TopMover mover = new TopMover(this);
+        mover.adjustTop();
     }
 
     private void initializeViews() {
