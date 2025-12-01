@@ -10,62 +10,45 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="702dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:text="Viewing Child's info"
-            android:textSize="45sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Tap a section below to view data that the parent has shared."
-            android:layout_marginBottom="24dp" />
+            android:text="Shared Child Data"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#1565C0"
+            android:layout_marginBottom="8dp" />
 
-        <Button
-            android:id="@+id/btnMedication"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Medication"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
 
-        <Button
-            android:id="@+id/btnDailyCheckIn"
+            <TextView
+                android:id="@+id/tvViewingChild"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Viewing Child:"
+                android:textSize="14sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/tvChildName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" Unknown"
+                android:textColor="#1565C0"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/containerItems"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Daily Check-In"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
-
-        <Button
-            android:id="@+id/btnSafetyMonitoring"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Safety and Monitoring (PEF and incidents)"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
-
-        <Button
-            android:id="@+id/btnTriggerPatterns"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Trigger Patterns"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
-
-        <Button
-            android:id="@+id/btnStatisticsReports"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Statistics and Reports"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
+            android:orientation="vertical" />
 
     </LinearLayout>
 </ScrollView>

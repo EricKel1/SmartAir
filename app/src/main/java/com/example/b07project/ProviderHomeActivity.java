@@ -237,8 +237,8 @@ public class ProviderHomeActivity extends AppCompatActivity {
         String childId = (String) patient.get("id");
         String childName = (String) patient.get("name");
 
-        // Later you’ll change this to your “Shared Data” screen
-        Intent intent = new Intent(this, HomeActivity.class);
+        // Navigate to provider view of shared child data
+        Intent intent = new Intent(this, ProviderChildInfoActivity.class);
         intent.putExtra("EXTRA_CHILD_ID", childId);
         intent.putExtra("EXTRA_CHILD_NAME", childName);
         startActivity(intent);

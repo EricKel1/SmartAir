@@ -20,6 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Patient (Use Invite Code)"
+        android:backgroundTint="#1565C0"
         android:layout_marginBottom="16dp"/>
 
     <TextView
@@ -57,6 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Sign Out"
+        android:backgroundTint="#1565C0"
         android:layout_marginTop="16dp"/>
 
 </LinearLayout>
