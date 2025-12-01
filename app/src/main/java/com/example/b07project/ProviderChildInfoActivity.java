@@ -69,7 +69,18 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
                     addItemIfShared(sharing, "pef", "PEF Readings", "View peak flow history", v -> openActivity(PEFHistoryActivity.class));
                     addItemIfShared(sharing, "triage", "Incidents", "View emergency triage incidents", v -> openActivity(IncidentHistoryActivity.class));
                     addItemIfShared(sharing, "patterns", "Trigger Patterns", "View trigger analytics", v -> openActivity(TriggerPatternsActivity.class));
-                    addItemIfShared(sharing, "summaryCharts", "Statistics & Reports", "View summary charts & reports", v -> openActivity(StatisticsReportsActivity.class));
+                    // Show Stats & Reports when parent enabled 'stats' sharing
+                    boolean shareStats = Boolean.TRUE.equals(sharing.get("stats"));
+                    if (shareStats) {
+                        View.OnClickListener openStats = v -> {
+                            Intent intent = new Intent(this, StatisticsReportsActivity.class);
+                            intent.putExtra("EXTRA_CHILD_ID", childId);
+                            intent.putExtra("EXTRA_READ_ONLY", true);
+                            startActivity(intent);
+                        };
+                        addItemIfShared(java.util.Collections.singletonMap("stats", true), "stats",
+                                "Statistics & Reports", "View summary charts & reports", openStats);
+                    }
                 });
     }
 
