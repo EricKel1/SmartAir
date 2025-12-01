@@ -28,6 +28,7 @@ public class ProviderHomeActivity extends AppCompatActivity {
     private RecyclerView rvPatients;
     private ProgressBar progressBar;
     private TextView tvNoPatients;
+    private TextView tvWelcome;
     private PatientAdapter adapter;
     private List<Map<String, Object>> patientsList;
     private FirebaseFirestore db;
@@ -49,8 +50,8 @@ public class ProviderHomeActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         tvNoPatients = findViewById(R.id.tvNoPatients);
 
-        TextView tvWelcome = findViewById(R.id.tvWelcome);
-        tvWelcome.setText("Welcome, Provider");
+        tvWelcome = findViewById(R.id.tvWelcome);
+        tvWelcome.setText("Welcome Provider");
     }
 
     private void setupRecyclerView() {
@@ -83,6 +84,10 @@ public class ProviderHomeActivity extends AppCompatActivity {
         db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
+                        String providerName = documentSnapshot.getString("displayName");
+                        if (providerName != null && !providerName.trim().isEmpty()) {
+                            tvWelcome.setText("Welcome " + providerName.trim());
+                        }
                         List<String> childIds = (List<String>) documentSnapshot.get("childIds");
                         if (childIds != null && !childIds.isEmpty()) {
                             fetchChildrenDetails(childIds);

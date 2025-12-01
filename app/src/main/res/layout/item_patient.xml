@@ -48,7 +48,7 @@
                     android:paddingBottom="2dp"
                     android:text="Recent triage esc"
                     android:textSize="11sp"
-                    android:textStyle="bold"
+                    android:textStyle="normal"
                     android:textColor="#ba0400"
                     android:includeFontPadding="false"
                     android:maxLines="1"

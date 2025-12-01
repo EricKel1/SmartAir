@@ -23,6 +23,10 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
     private TextView tvTitle;
     private TextView tvViewingChild;
     private TextView tvChildName;
+    private TextView tvEmptyShared;
+    private View layoutEmptyShared;
+    private View scrollContent;
+    private Button btnSignOutEmpty;
     private LinearLayout containerItems;
     private Button btnSignOut;
 
@@ -36,9 +40,11 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
         childName = getIntent().getStringExtra("EXTRA_CHILD_NAME");
 
         initializeViews();
-        tvTitle.setText("Shared Child Data");
-        tvViewingChild.setText("Viewing Child:");
-        tvChildName.setText(childName != null ? childName : "Unknown");
+        String nameForTitle = (childName != null && !childName.trim().isEmpty()) ? childName.trim() : "Child";
+        tvTitle.setText("Viewing " + nameForTitle + "'s Info");
+        tvViewingChild.setText("Shared By Parent");
+        tvChildName.setText("");
+        tvChildName.setVisibility(View.GONE);
 
         loadSharingSettings();
     }
@@ -47,22 +53,39 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
         tvTitle = findViewById(R.id.tvTitle);
         tvViewingChild = findViewById(R.id.tvViewingChild);
         tvChildName = findViewById(R.id.tvChildName);
+        tvEmptyShared = findViewById(R.id.tvEmptyShared);
+        layoutEmptyShared = findViewById(R.id.layoutEmptyShared);
+        scrollContent = findViewById(R.id.scrollContent);
         containerItems = findViewById(R.id.containerItems);
         btnSignOut = findViewById(R.id.btnSignOut);
+        btnSignOutEmpty = findViewById(R.id.btnSignOutEmpty);
 
         btnSignOut.setOnClickListener(v -> {
             com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
             startActivity(new android.content.Intent(this, LoginActivity.class));
             finish();
         });
+        if (btnSignOutEmpty != null) {
+            btnSignOutEmpty.setOnClickListener(v -> {
+                com.google.firebase.auth.FirebaseAuth.getInstance().signOut();
+                startActivity(new android.content.Intent(this, LoginActivity.class));
+                finish();
+            });
+        }
     }
 
     private void loadSharingSettings() {
         db.collection("children").document(childId).get()
                 .addOnSuccessListener(doc -> {
-                    if (!doc.exists()) return;
+                    if (!doc.exists()) {
+                        showEmptyState();
+                        return;
+                    }
                     Map<String, Object> sharing = (Map<String, Object>) doc.get("sharingSettings");
-                    if (sharing == null) return;
+                    if (sharing == null) {
+                        showEmptyState();
+                        return;
+                    }
 
                     addItemIfShared(sharing, "symptoms", "Symptom History", "View historical symptom check-ins", v -> openActivity(SymptomHistoryActivity.class));
                     addItemIfShared(sharing, "medication", "Medicine Logs", "View rescue/controller medicine history", v -> openActivity(RescueInhalerHistoryActivity.class));
@@ -81,7 +104,25 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
                         addItemIfShared(java.util.Collections.singletonMap("stats", true), "stats",
                                 "Statistics & Reports", "View summary charts & reports", openStats);
                     }
+
+                    if (containerItems.getChildCount() == 0) {
+                        showEmptyState();
+                    } else {
+                        hideEmptyState();
+                    }
                 });
+    }
+
+    private void showEmptyState() {
+        if (layoutEmptyShared != null) layoutEmptyShared.setVisibility(View.VISIBLE);
+        if (tvEmptyShared != null) tvEmptyShared.setVisibility(View.VISIBLE);
+        if (scrollContent != null) scrollContent.setVisibility(View.GONE);
+    }
+
+    private void hideEmptyState() {
+        if (layoutEmptyShared != null) layoutEmptyShared.setVisibility(View.GONE);
+        if (tvEmptyShared != null) tvEmptyShared.setVisibility(View.GONE);
+        if (scrollContent != null) scrollContent.setVisibility(View.VISIBLE);
     }
 
     private void addItemIfShared(Map<String, Object> sharing, String key, String title, String desc, View.OnClickListener onClick) {
