@@ -117,7 +117,8 @@ public class ProviderHomeActivity extends AppCompatActivity {
                             String id = childDoc.getId();
                             patient.put("id", id);
                             patient.put("name", childDoc.getString("name"));
-                            patient.put("dob", childDoc.getString("dob"));
+                            // Firestore stores DOB under "dateOfBirth"; map to adapter's "dob" key
+                            patient.put("dob", childDoc.getString("dateOfBirth"));
 
                             // sharingSettings.pef = “Safety & Monitoring” switch
                             Map<String, Object> sharing =

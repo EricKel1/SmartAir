@@ -45,9 +45,8 @@ public class PatientAdapter extends RecyclerView.Adapter<PatientAdapter.PatientV
         String dob  = (String) patient.get("dob");
 
         holder.tvChildName.setText(name != null ? name : "Unknown");
-        holder.tvChildDob.setText(
-                (dob != null && !dob.isEmpty()) ? "DOB: " + dob : "DOB: N/A"
-        );
+            String dobText = (dob != null && !dob.trim().isEmpty()) ? "DOB: " + dob.trim() : "DOB: N/A";
+            holder.tvChildDob.setText(dobText);
         holder.tvChildSubtitle.setText("Tap to view shared information");
 
         boolean safetyEnabled = Boolean.TRUE.equals(patient.get("safetyMonitoringEnabled"));
