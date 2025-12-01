@@ -41,14 +41,14 @@ public class ProviderHomeActivity extends AppCompatActivity {
         initializeViews();
         setupRecyclerView();
         setupListeners();
-        // loadPatients(); // Removed because onResume calls it
+
     }
 
     private void initializeViews() {
         rvPatients = findViewById(R.id.rvPatients);
         progressBar = findViewById(R.id.progressBar);
         tvNoPatients = findViewById(R.id.tvNoPatients);
-        
+
         TextView tvWelcome = findViewById(R.id.tvWelcome);
         tvWelcome.setText("Welcome, Provider");
     }
@@ -62,9 +62,8 @@ public class ProviderHomeActivity extends AppCompatActivity {
 
     private void setupListeners() {
         Button btnAddPatient = findViewById(R.id.btnAddPatient);
-        btnAddPatient.setOnClickListener(v -> {
-            startActivity(new Intent(this, ProviderUseInviteCodeActivity.class));
-        });
+        btnAddPatient.setOnClickListener(v ->
+                startActivity(new Intent(this, ProviderUseInviteCodeActivity.class)));
 
         Button btnSignOut = findViewById(R.id.btnSignOut);
         btnSignOut.setOnClickListener(v -> {
@@ -104,21 +103,42 @@ public class ProviderHomeActivity extends AppCompatActivity {
 
     private void fetchChildrenDetails(List<String> childIds) {
         patientsList.clear();
-        adapter.notifyDataSetChanged(); // Clear UI immediately
-        
-        // Simple counter to know when all are fetched
+        adapter.notifyDataSetChanged();
+
         final int[] completedCount = {0};
         final int total = childIds.size();
 
         for (String childId : childIds) {
             db.collection("children").document(childId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
+                    .addOnSuccessListener(childDoc -> {
+                        if (childDoc.exists()) {
                             Map<String, Object> patient = new HashMap<>();
-                            patient.put("id", documentSnapshot.getId());
-                            patient.put("name", documentSnapshot.getString("name"));
-                            // Add other fields if needed
+
+                            String id = childDoc.getId();
+                            patient.put("id", id);
+                            patient.put("name", childDoc.getString("name"));
+                            patient.put("dob", childDoc.getString("dob"));
+
+                            // sharingSettings.pef = “Safety & Monitoring” switch
+                            Map<String, Object> sharing =
+                                    (Map<String, Object>) childDoc.get("sharingSettings");
+                            boolean safetyEnabled = sharing != null &&
+                                    Boolean.TRUE.equals(sharing.get("pef"));
+                            patient.put("safetyMonitoringEnabled", safetyEnabled);
+
+                            // default badge state
+                            patient.put("hasPEFData", false);
+                            patient.put("pefValue", null);
+                            patient.put("pefZone", null);
+                            patient.put("hasRecentTriage", false);
+
                             patientsList.add(patient);
+
+                            // Only load badge data if parent has enabled Safety & Monitoring
+                            if (safetyEnabled) {
+                                loadLatestPEFForChild(id, patient);
+                                loadLatestTriageForChild(id, patient);
+                            }
                         }
                         checkLoadComplete(++completedCount[0], total);
                     })
@@ -139,19 +159,64 @@ public class ProviderHomeActivity extends AppCompatActivity {
         }
     }
 
+    /** Get most recent PEF reading for this child */
+    private void loadLatestPEFForChild(String childId, Map<String, Object> patient) {
+        db.collection("pef_readings")
+                .whereEqualTo("userId", childId)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (!qs.isEmpty()) {
+                        DocumentSnapshot doc = qs.getDocuments().get(0);
+                        Long value = doc.getLong("value");
+                        String zone = doc.getString("zone");
+
+                        patient.put("hasPEFData", true);
+                        patient.put("pefValue", value);
+                        patient.put("pefZone", zone);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    /** Get latest triage session; show badge if latest decision was “emergency” */
+    private void loadLatestTriageForChild(String childId, Map<String, Object> patient) {
+        db.collection("triage_sessions")
+                .whereEqualTo("userId", childId)
+                .orderBy("startTime", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (!qs.isEmpty()) {
+                        DocumentSnapshot doc = qs.getDocuments().get(0);
+                        String decision = doc.getString("decision");
+                        boolean hasIncident = decision != null &&
+                                decision.equalsIgnoreCase("emergency");
+
+                        if (hasIncident) {
+                            patient.put("hasRecentTriage", true);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+    }
+
     private void onPatientClick(Map<String, Object> patient) {
         String childId = (String) patient.get("id");
         String childName = (String) patient.get("name");
-        
+
+        // Later you’ll change this to your “Shared Data” screen
         Intent intent = new Intent(this, HomeActivity.class);
         intent.putExtra("EXTRA_CHILD_ID", childId);
         intent.putExtra("EXTRA_CHILD_NAME", childName);
         startActivity(intent);
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
-        loadPatients(); // Refresh list when returning from adding a patient
+        loadPatients();
     }
 }
+
