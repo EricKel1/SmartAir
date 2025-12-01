@@ -20,6 +20,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
     private OnReportActionListener listener;
     private OnReportDeleteListener deleteListener;
     private SimpleDateFormat dateFormat;
+    private boolean readOnly;
 
     public interface OnReportActionListener {
         void onShareReport(Report report);
@@ -37,6 +38,11 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         this.dateFormat = new SimpleDateFormat("dd.MM.yyyy", Locale.getDefault());
     }
 
+    public void setReadOnly(boolean readOnly) {
+        this.readOnly = readOnly;
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ReportViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -51,22 +57,30 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
         
         holder.tvReportTitle.setText("Usage report - " + report.getDays() + " days");
         holder.tvReportDate.setText("Generated on " + dateFormat.format(new Date(report.getGeneratedDate())));
-        
-        holder.btnShareReport.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onShareReport(report);
-            }
-        });
+
+        if (readOnly) {
+            holder.btnShareReport.setVisibility(View.GONE);
+            holder.btnDeleteReport.setVisibility(View.GONE);
+            holder.btnShareReport.setOnClickListener(null);
+            holder.btnDeleteReport.setOnClickListener(null);
+        } else {
+            holder.btnShareReport.setVisibility(View.VISIBLE);
+            holder.btnDeleteReport.setVisibility(View.VISIBLE);
+            holder.btnShareReport.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onShareReport(report);
+                }
+            });
+            holder.btnDeleteReport.setOnClickListener(v -> {
+                if (deleteListener != null) {
+                    deleteListener.onReportDelete(report, holder.getAdapterPosition());
+                }
+            });
+        }
 
         holder.btnDownloadReport.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onDownloadReport(report);
-            }
-        });
-
-        holder.btnDeleteReport.setOnClickListener(v -> {
-            if (deleteListener != null) {
-                deleteListener.onReportDelete(report, holder.getAdapterPosition());
             }
         });
     }

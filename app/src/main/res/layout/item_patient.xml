@@ -3,55 +3,115 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="16dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="#E7F3FF">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_myplaces"
-            app:tint="#1565C0"
-            android:layout_marginEnd="16dp"/>
-
+        <!-- LEFT: name + DOB + subtitle + triage pill -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tvPatientName"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Patient Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/black"/>
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvChildName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Child Name"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#1565C0" />
+
+                <TextView
+                    android:id="@+id/tvTriageBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:text="Recent triage esc"
+                    android:textSize="11sp"
+                    android:textStyle="normal"
+                    android:textColor="#ba0400"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:drawableStart="@drawable/ic_warning_small"
+                    android:drawablePadding="4dp"
+                    android:background="@drawable/bg_triage_badge"
+                    android:visibility="gone"/>
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tvPatientAge"
+                android:id="@+id/tvChildDob"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Age: --"
+                android:text="DOB: N/A"
                 android:textSize="14sp"
-                android:textColor="#666666"/>
+                android:textColor="#666666"
+                android:layout_marginTop="4dp" />
 
+            <TextView
+                android:id="@+id/tvChildSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap to view shared information"
+                android:textSize="13sp"
+                android:textColor="#777777"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_media_play"
-            app:tint="#999999"
-            android:rotation="0"/>
+        <!-- RIGHT: PEF circle -->
+        <LinearLayout
+            android:id="@+id/layoutPefContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tvPefLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today's PEF zone"
+                android:textSize="12sp"
+                android:textColor="#555555"
+                android:layout_marginBottom="6dp" />
+
+            <FrameLayout
+                android:id="@+id/flPefCircle"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:background="@drawable/bg_pef_green"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/tvPefValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="400 L/min"
+                    android:textSize="13sp"
+                    android:textColor="#555555" />
+            </FrameLayout>
+        </LinearLayout>
 
     </LinearLayout>
 

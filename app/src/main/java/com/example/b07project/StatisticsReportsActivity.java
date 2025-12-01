@@ -42,7 +42,8 @@ public class StatisticsReportsActivity extends AppCompatActivity {
 
     private void setupViewPager() {
         String childId = getIntent().getStringExtra("EXTRA_CHILD_ID");
-        ViewPagerAdapter adapter = new ViewPagerAdapter(this, childId);
+        boolean readOnly = getIntent().getBooleanExtra("EXTRA_READ_ONLY", false);
+        ViewPagerAdapter adapter = new ViewPagerAdapter(this, childId, readOnly);
         viewPager.setAdapter(adapter);
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
@@ -59,10 +60,12 @@ public class StatisticsReportsActivity extends AppCompatActivity {
 
     private static class ViewPagerAdapter extends FragmentStateAdapter {
         private final String childId;
+        private final boolean readOnly;
 
-        public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity, String childId) {
+        public ViewPagerAdapter(@NonNull FragmentActivity fragmentActivity, String childId, boolean readOnly) {
             super(fragmentActivity);
             this.childId = childId;
+            this.readOnly = readOnly;
         }
 
         @NonNull
@@ -72,7 +75,7 @@ public class StatisticsReportsActivity extends AppCompatActivity {
                 case 0:
                     return StatisticsFragment.newInstance(childId);
                 case 1:
-                    return ReportsFragment.newInstance(childId);
+                    return ReportsFragment.newInstance(childId, readOnly);
                 default:
                     return StatisticsFragment.newInstance(childId);
             }

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -13,6 +14,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.B07Project">
+        <activity
+            android:name=".ProviderChildInfoActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -25,13 +29,15 @@
         </provider>
 
         <activity android:name=".HomeActivity" />
-        <activity android:name=".SignUpActivity" android:exported="true" />
+        <activity
+            android:name=".SignUpActivity"
+            android:exported="true" />
         <activity android:name=".LogRescueInhalerActivity" />
         <activity android:name=".RescueInhalerHistoryActivity" />
         <activity android:name=".DailySymptomCheckInActivity" />
         <activity android:name=".SymptomHistoryActivity" />
         <activity android:name=".TriggerPatternsActivity" />
-        <activity 
+        <activity
             android:name=".PEFEntryActivity"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".PEFHistoryActivity" />
@@ -39,7 +45,7 @@
         <activity android:name=".IncidentHistoryActivity" />
         <activity android:name=".InhalerTechniqueActivity" />
         <activity android:name=".ParentHomeActivity" />
-        <activity android:name=".ParentAddNewChildActivity"/>
+        <activity android:name=".ParentAddNewChildActivity" />
         <activity android:name=".ParentAddNewExistingChildActivity" />
         <activity android:name=".ParentChildLogsActivity" />
         <activity android:name=".ParentCreateNewCodeActivity" />
@@ -47,7 +53,6 @@
         <activity android:name=".ChildLoginConduitActivity" />
         <activity android:name=".ChildLoginThroughParentActivity" />
         <activity android:name=".ChildLoginThroughSelfActivity" />
-
         <activity android:name=".MotivationActivity" />
         <activity android:name=".MotivationSettingsActivity" />
         <activity android:name=".StatisticsReportsActivity" />
@@ -58,12 +63,12 @@
         <activity android:name=".ProviderHomeActivity" />
         <activity android:name=".InventoryActivity" />
         <activity android:name=".NotificationCenterActivity" />
-
         <activity
             android:name=".main.WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
