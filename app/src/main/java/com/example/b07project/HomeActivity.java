@@ -460,21 +460,37 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onSuccess(com.example.b07project.models.PEFReading reading) {
                 if (reading != null && reading.getZone() != null && !reading.getZone().equals("unknown")) {
-                    updateZoneDisplay(reading.getZone(), reading.getPercentageOfPB());
+                    // Check if the reading is from today
+                    if (isReadingFromToday(reading.getTimestamp())) {
+                        updateZoneDisplay(reading.getZone(), reading.getPercentageOfPB());
+                    } else {
+                        tvCurrentZone.setText("No PEF reading today yet");
+                        tvZonePercentage.setText("");
+                    }
                 } else {
-                    tvCurrentZone.setText("No data yet");
+                    tvCurrentZone.setText("No PEF reading today yet");
                     tvZonePercentage.setText("");
                 }
             }
 
             @Override
             public void onFailure(String error) {
-                tvCurrentZone.setText("No data yet");
+                tvCurrentZone.setText("No PEF reading today yet");
                 tvZonePercentage.setText("");
             }
         });
     }
 
+    private boolean isReadingFromToday(java.util.Date readingDate) {
+        if (readingDate == null) return false;
+
+        java.util.Calendar today = java.util.Calendar.getInstance();
+        java.util.Calendar readingCal = java.util.Calendar.getInstance();
+        readingCal.setTime(readingDate);
+
+        return today.get(java.util.Calendar.YEAR) == readingCal.get(java.util.Calendar.YEAR)
+                && today.get(java.util.Calendar.DAY_OF_YEAR) == readingCal.get(java.util.Calendar.DAY_OF_YEAR);
+    }
     private void updateZoneDisplay(String zone, int percentage) {
         String zoneLabel = PersonalBest.getZoneLabel(zone);
         tvCurrentZone.setText(zoneLabel);
