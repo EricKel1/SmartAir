@@ -28,6 +28,7 @@ public class ProviderHomeActivity extends AppCompatActivity {
     private RecyclerView rvPatients;
     private ProgressBar progressBar;
     private TextView tvNoPatients;
+    private TextView tvWelcome;
     private PatientAdapter adapter;
     private List<Map<String, Object>> patientsList;
     private FirebaseFirestore db;
@@ -52,9 +53,9 @@ public class ProviderHomeActivity extends AppCompatActivity {
         rvPatients = findViewById(R.id.rvPatients);
         progressBar = findViewById(R.id.progressBar);
         tvNoPatients = findViewById(R.id.tvNoPatients);
-        
-        TextView tvWelcome = findViewById(R.id.tvWelcome);
-        tvWelcome.setText("Welcome, Provider");
+
+        tvWelcome = findViewById(R.id.tvWelcome);
+        tvWelcome.setText("Welcome Provider");
     }
 
     private void setupRecyclerView() {
@@ -66,9 +67,8 @@ public class ProviderHomeActivity extends AppCompatActivity {
 
     private void setupListeners() {
         Button btnAddPatient = findViewById(R.id.btnAddPatient);
-        btnAddPatient.setOnClickListener(v -> {
-            startActivity(new Intent(this, ProviderUseInviteCodeActivity.class));
-        });
+        btnAddPatient.setOnClickListener(v ->
+                startActivity(new Intent(this, ProviderUseInviteCodeActivity.class)));
 
         Button btnSignOut = findViewById(R.id.btnSignOut);
         btnSignOut.setOnClickListener(v -> {
@@ -88,6 +88,10 @@ public class ProviderHomeActivity extends AppCompatActivity {
         db.collection("users").document(user.getUid()).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
+                        String providerName = documentSnapshot.getString("displayName");
+                        if (providerName != null && !providerName.trim().isEmpty()) {
+                            tvWelcome.setText("Welcome " + providerName.trim());
+                        }
                         List<String> childIds = (List<String>) documentSnapshot.get("childIds");
                         if (childIds != null && !childIds.isEmpty()) {
                             fetchChildrenDetails(childIds);
@@ -108,21 +112,56 @@ public class ProviderHomeActivity extends AppCompatActivity {
 
     private void fetchChildrenDetails(List<String> childIds) {
         patientsList.clear();
-        adapter.notifyDataSetChanged(); // Clear UI immediately
-        
-        // Simple counter to know when all are fetched
+        adapter.notifyDataSetChanged();
+
         final int[] completedCount = {0};
         final int total = childIds.size();
 
         for (String childId : childIds) {
             db.collection("children").document(childId).get()
-                    .addOnSuccessListener(documentSnapshot -> {
-                        if (documentSnapshot.exists()) {
+                    .addOnSuccessListener(childDoc -> {
+                        if (childDoc.exists()) {
                             Map<String, Object> patient = new HashMap<>();
-                            patient.put("id", documentSnapshot.getId());
-                            patient.put("name", documentSnapshot.getString("name"));
-                            // Add other fields if needed
+
+                            String id = childDoc.getId();
+                            patient.put("id", id);
+                            patient.put("name", childDoc.getString("name"));
+                            // Map DOB with fallbacks for older records
+                            String dobVal = childDoc.getString("dateOfBirth");
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                dobVal = childDoc.getString("dob");
+                            }
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                Object ageField = childDoc.get("age");
+                                if (ageField != null) dobVal = String.valueOf(ageField);
+                            }
+                            patient.put("dob", dobVal);
+
+                            // sharingSettings.pef = “Safety & Monitoring” switch
+                            Map<String, Object> sharing =
+                                    (Map<String, Object>) childDoc.get("sharingSettings");
+                            boolean safetyEnabled = sharing != null &&
+                                    Boolean.TRUE.equals(sharing.get("pef"));
+                            patient.put("safetyMonitoringEnabled", safetyEnabled);
+
+                            // default badge state
+                            patient.put("hasPEFData", false);
+                            patient.put("pefValue", null);
+                            patient.put("pefZone", null);
+                            patient.put("hasRecentTriage", false);
+
                             patientsList.add(patient);
+
+                            // If DOB still empty, try child's user profile as a last resort
+                            if (dobVal == null || dobVal.trim().isEmpty()) {
+                                fetchDobFromUsers(id, patient);
+                            }
+
+                            // Only load badge data if parent has enabled Safety & Monitoring
+                            if (safetyEnabled) {
+                                loadLatestPEFForChild(id, patient);
+                                loadLatestTriageForChild(id, patient);
+                            }
                         }
                         checkLoadComplete(++completedCount[0], total);
                     })
@@ -143,19 +182,80 @@ public class ProviderHomeActivity extends AppCompatActivity {
         }
     }
 
+    ///Get most recent PEF reading for this child
+    private void loadLatestPEFForChild(String childId, Map<String, Object> patient) {
+        db.collection("pef_readings")
+                .whereEqualTo("userId", childId)
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (!qs.isEmpty()) {
+                        DocumentSnapshot doc = qs.getDocuments().get(0);
+                        Long value = doc.getLong("value");
+                        String zone = doc.getString("zone");
+
+                        patient.put("hasPEFData", true);
+                        patient.put("pefValue", value);
+                        patient.put("pefZone", zone);
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+    }
+
+    ///Get latest triage session; show badge if latest decision was “emergency”
+    private void loadLatestTriageForChild(String childId, Map<String, Object> patient) {
+        db.collection("triage_sessions")
+                .whereEqualTo("userId", childId)
+                .orderBy("startTime", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(qs -> {
+                    if (!qs.isEmpty()) {
+                        DocumentSnapshot doc = qs.getDocuments().get(0);
+                        String decision = doc.getString("decision");
+                        boolean hasIncident = decision != null &&
+                                decision.equalsIgnoreCase("emergency");
+
+                        if (hasIncident) {
+                            patient.put("hasRecentTriage", true);
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+    }
+    ///Read child's DOB from users/{childUid} if not present in children/{childUid}
+    private void fetchDobFromUsers(String childUid, Map<String, Object> patient) {
+        db.collection("users").document(childUid).get()
+                .addOnSuccessListener(userDoc -> {
+                    if (userDoc.exists()) {
+                        String dobFromUser = userDoc.getString("dateOfBirth");
+                        if (dobFromUser == null || dobFromUser.trim().isEmpty()) {
+                            dobFromUser = userDoc.getString("dob");
+                        }
+                        if (dobFromUser != null && !dobFromUser.trim().isEmpty()) {
+                            patient.put("dob", dobFromUser.trim());
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+    }
+
     private void onPatientClick(Map<String, Object> patient) {
         String childId = (String) patient.get("id");
         String childName = (String) patient.get("name");
-        
-        Intent intent = new Intent(this, HomeActivity.class);
+
+        // Navigate to provider view of shared child data
+        Intent intent = new Intent(this, ProviderChildInfoActivity.class);
         intent.putExtra("EXTRA_CHILD_ID", childId);
         intent.putExtra("EXTRA_CHILD_NAME", childName);
         startActivity(intent);
     }
-    
+
     @Override
     protected void onResume() {
         super.onResume();
-        loadPatients(); // Refresh list when returning from adding a patient
+        loadPatients();
     }
 }
+

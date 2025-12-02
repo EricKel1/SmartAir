@@ -11,7 +11,10 @@ public class LoginPresenter implements LoginContract.Presenter {
         this.view = view;
         this.repo = repo;
     }
-
+    //make public for testing
+    public boolean isValidEmailFormat(String email) {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
     @Override
     public void onLoginClicked() {
         if (view == null) return;
@@ -24,11 +27,14 @@ public class LoginPresenter implements LoginContract.Presenter {
         }
 
         String email = input;
-        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches()) {
+//        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(input).matches()) {
+//            // Assume it's a username
+//            email = input + "@b07project.local";
+//        }
+        if (!isValidEmailFormat(input)) {  // Use the extracted method
             // Assume it's a username
             email = input + "@b07project.local";
         }
-
         view.showLoading(true);
         repo.signIn(email, pass, new AuthRepo.Callback() {
             @Override public void onSuccess() {

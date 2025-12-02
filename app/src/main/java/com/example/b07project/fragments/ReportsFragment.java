@@ -36,11 +36,13 @@ public class ReportsFragment extends Fragment {
     private ReportAdapter reportAdapter;
     private FirebaseFirestore db;
     private String userId;
+    private boolean readOnly;
 
-    public static ReportsFragment newInstance(String userId) {
+    public static ReportsFragment newInstance(String userId, boolean readOnly) {
         ReportsFragment fragment = new ReportsFragment();
         Bundle args = new Bundle();
         args.putString("userId", userId);
+        args.putBoolean("readOnly", readOnly);
         fragment.setArguments(args);
         return fragment;
     }
@@ -61,9 +63,15 @@ public class ReportsFragment extends Fragment {
         } else {
             userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         }
+        if (getArguments() != null) {
+            readOnly = getArguments().getBoolean("readOnly", false);
+        }
 
         setupRecyclerView();
         setupListeners();
+        if (readOnly) {
+            fabCreateReport.setVisibility(View.GONE);
+        }
         loadReports();
 
         return view;
@@ -81,12 +89,16 @@ public class ReportsFragment extends Fragment {
                 downloadReport(report);
             }
         }, this::confirmDeleteReport);
+        // Providers are read-only: remove generate/share/delete actions
+        reportAdapter.setReadOnly(readOnly);
         rvReports.setLayoutManager(new LinearLayoutManager(getContext()));
         rvReports.setAdapter(reportAdapter);
     }
 
     private void setupListeners() {
-        fabCreateReport.setOnClickListener(v -> showCreateReportDialog());
+        fabCreateReport.setOnClickListener(v -> {
+            if (!readOnly) showCreateReportDialog();
+        });
     }
 
     private void showCreateReportDialog() {
