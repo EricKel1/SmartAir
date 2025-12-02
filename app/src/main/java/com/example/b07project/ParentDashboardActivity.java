@@ -97,7 +97,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         Button btnLogout = findViewById(R.id.btnLogout);
         Button btnInventory = findViewById(R.id.btnInventory);
-        Button btnResetOnboarding = findViewById(R.id.btnResetOnboarding);
         btnAddChild = findViewById(R.id.btnAddChild);
         btnNotifications = findViewById(R.id.btnNotifications);
         btnSwitchProfile = findViewById(R.id.btnSwitchProfile);
@@ -205,12 +204,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         });
 
         btnAddChild.setOnClickListener(v -> showAddChildDialog());
-
-        btnResetOnboarding.setOnClickListener(v -> {
-            SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
-            prefs.edit().clear().apply();
-            Toast.makeText(this, "Onboarding has been reset.", Toast.LENGTH_SHORT).show();
-        });
 
         TopMover mover = new TopMover(this);
         mover.adjustTop();

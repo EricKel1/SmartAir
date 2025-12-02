@@ -117,14 +117,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
-            <Button
-                android:id="@+id/btnResetOnboarding"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Reset Onboarding (Debug)"
-                app:layout_constraintBottom_toTopOf="@+id/btnLogout"
-                android:textColor="#FFA000"/>
 
             <Button
                 android:id="@+id/btnSwitchProfile"
@@ -134,7 +126,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:textColor="#1A237E"
                 android:layout_marginBottom="4dp"
-                app:layout_constraintBottom_toTopOf="@+id/btnResetOnboarding"
+                app:layout_constraintBottom_toTopOf="@+id/btnLogout"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
