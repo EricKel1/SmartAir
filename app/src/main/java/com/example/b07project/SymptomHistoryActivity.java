@@ -68,6 +68,19 @@ public class SymptomHistoryActivity extends AppCompatActivity {
         btnDownloadCsv.setOnClickListener(v -> exportToCsv());
         btnDownloadPdf.setOnClickListener(v -> exportToPdf());
         
+        // Hide export buttons for child users (only show for parent/provider viewing from their dashboard)
+        // Check if user is in child mode by looking at SharedPreferences
+        // When parent selects a child from DeviceChooserActivity, last_role is set to "child"
+        android.content.SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        String lastRole = prefs.getString("last_role", "");
+        
+        // If last_role is "child", user is using app in child mode - hide export buttons
+        // Export is only available when parent/provider accesses from their own dashboard (last_role = "parent" or "provider")
+        if ("child".equals(lastRole)) {
+            btnDownloadCsv.setVisibility(View.GONE);
+            btnDownloadPdf.setVisibility(View.GONE);
+        }
+        
         // Default to all time
         Calendar cal = Calendar.getInstance();
         endDate = cal.getTime();
