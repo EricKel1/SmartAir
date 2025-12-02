@@ -420,13 +420,9 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        btnStatisticsReports.setOnClickListener(v -> {
-            Intent intent = new Intent(this, StatisticsReportsActivity.class);
-            if (dataOwnerId != null) {
-                intent.putExtra("EXTRA_CHILD_ID", dataOwnerId);
-            }
-            startActivity(intent);
-        });
+        // Hide Statistics & Reports button for child dashboard
+        // This feature is only available on parent/provider dashboards
+        btnStatisticsReports.setVisibility(View.GONE);
 
         btnSignOut.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();

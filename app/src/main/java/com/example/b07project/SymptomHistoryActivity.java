@@ -68,6 +68,13 @@ public class SymptomHistoryActivity extends AppCompatActivity {
         btnDownloadCsv.setOnClickListener(v -> exportToCsv());
         btnDownloadPdf.setOnClickListener(v -> exportToPdf());
         
+        // Hide export buttons for child users (only show for parent/provider)
+        // If EXTRA_CHILD_ID is present, it means parent/provider is viewing child's data
+        if (!getIntent().hasExtra("EXTRA_CHILD_ID")) {
+            btnDownloadCsv.setVisibility(View.GONE);
+            btnDownloadPdf.setVisibility(View.GONE);
+        }
+        
         // Default to all time
         Calendar cal = Calendar.getInstance();
         endDate = cal.getTime();
