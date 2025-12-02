@@ -457,63 +457,276 @@ The following Firestore security rules enforce role-based access:
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // --- Helper Functions ---
 
+    // Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Check if user owns the document
     function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
 
-    function isParentOf(childId) {
-      return request.auth != null && 
-             get(/databases/$(database)/documents/children/$(childId)).data.parentId == request.auth.uid;
+    // Check if the user is the parent of the child (by looking up the child doc)
+    function isParentOfChild(childId) {
+      let child = get(/databases/$(database)/documents/children/$(childId));
+      return child != null && child.data.parentId == request.auth.uid;
     }
 
-    function isProviderFor(childId) {
-      return request.auth != null && 
-             childId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.childIds;
+    // Check if the user is a provider for the child (by looking up the provider's list)
+    function isProviderForChild(childId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      // Checks if the childId exists in the provider's 'childIds' array
+      return userDoc != null && (childId in userDoc.data.childIds);
     }
-
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /children/{childId} {
-      allow read: if isOwner(childId) || isParentOf(childId) || isProviderFor(childId);
-      allow write: if isOwner(childId) || isParentOf(childId);
-    }
-
+    
+        // Add this new rule for the schedule
     match /medication_schedules/{childId} {
-      allow read: if isOwner(childId) || isParentOf(childId) || isProviderFor(childId);
-      allow write: if isParentOf(childId);
+      allow read, write: if request.auth != null;
     }
 
-    match /controller_medicine_logs/{logId} {
-      allow read: if isOwner(resource.data.userId) || 
-                     isParentOf(resource.data.userId) || 
-                     isProviderFor(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId) || 
-                       isParentOf(request.resource.data.userId);
+    // --- Collection Rules ---
+
+    // Users (Parents, Providers, Children)
+    match /users/{userId} {
+      // Allow anyone to read users (needed for provider lookup), but only owner can write
+      allow read: if isAuthenticated();           
+      allow write: if isAuthenticated() && isOwner(userId);
     }
 
+    // Children Profiles
+    match /children/{childId} {
+  	// Read: Anyone authenticated can read (needed for invite code redemption)
+  	allow read: if isAuthenticated();
+
+  	// Create: Parent only
+  	allow create: if isAuthenticated() && request.auth.uid == request.resource.data.parentId;
+
+  	// Update/Delete: Parent only
+  	allow update, delete: if isAuthenticated() && resource.data.parentId == request.auth.uid;
+	}	
+    // --- Medical Data Collections ---
+    // Updated to allow Parents and Providers to READ, but only Owners/Parents to WRITE
+
+    // Rescue Inhaler Logs
     match /rescue_inhaler_logs/{logId} {
-      allow read: if isOwner(resource.data.userId) || 
-                     isParentOf(resource.data.userId) || 
-                     isProviderFor(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId) || 
-                       isParentOf(request.resource.data.userId);
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
     }
-
+    
+    // Controller Medicine Logs
+    match /controller_medicine_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Symptom Check-ins
+    match /symptom_checkins/{checkinId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // PEF Readings
     match /pef_readings/{readingId} {
-      allow read: if isOwner(resource.data.userId) || 
-                     isParentOf(resource.data.userId) || 
-                     isProviderFor(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId) || 
-                       isParentOf(request.resource.data.userId);
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Personal Bests
+    match /personal_bests/{pbId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Zone Change Logs
+    match /zone_change_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Triage Sessions
+    match /triage_sessions/{sessionId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Streaks 
+    match /streaks/{streakId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Badges
+    match /badges/{badgeId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Controller Logs (Duplicate of controller_medicine_logs? Keeping just in case)
+    match /controller_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+    
+    // Reports
+    match /reports/{reportId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
     }
 
+    // Inventory
+    match /inventory/{itemId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId) || 
+        isProviderForChild(resource.data.userId)
+      );
+      allow create: if isAuthenticated() && (
+        isOwner(request.resource.data.userId) || 
+        isParentOfChild(request.resource.data.userId)
+      );
+      allow update, delete: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        isParentOfChild(resource.data.userId)
+      );
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read, update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated();
+    }
+        // Invite Codes
     match /invite_codes/{code} {
+      // Anyone authenticated can read to validate a code
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow delete: if request.auth != null;
+      // Only the creator (parent) or the consumer (provider) can delete
+      allow create: if request.auth != null; // Parent creates
+      allow delete: if request.auth != null; // Provider deletes after use
     }
   }
 }
