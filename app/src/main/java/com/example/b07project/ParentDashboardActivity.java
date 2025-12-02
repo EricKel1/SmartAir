@@ -19,6 +19,8 @@ import com.example.b07project.models.PersonalBest;
 import com.example.b07project.models.RescueInhalerLog;
 import com.example.b07project.repository.PEFRepository;
 import com.example.b07project.repository.RescueInhalerRepository;
+import com.getkeepsafe.taptargetview.TapTarget;
+import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -74,14 +76,12 @@ public class ParentDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_parent_dashboard);
 
-        // Request Notification Permission for Android 13+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQUEST_CODE_POST_NOTIFICATIONS);
             }
         }
 
-        // Register FCM Token
         FirebaseMessaging.getInstance().getToken()
             .addOnCompleteListener(task -> {
                 if (!task.isSuccessful()) {
@@ -156,8 +156,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
             @Override
             public void onSetMedicationSchedule(String childName, String childId) {
-                // Deprecated: Schedule is now managed in ParentChildDashboardActivity
-                // showSetMedicationScheduleDialog(childName, childId);
             }
 
             @Override
@@ -206,16 +204,42 @@ public class ParentDashboardActivity extends AppCompatActivity {
         });
 
         btnAddChild.setOnClickListener(v -> showAddChildDialog());
-        
-        // Removed scheduleNotificationWorker() as we are switching to FCM
-        
-        // Temporary Debug: Print logs for a specific child ID if known
-        // debugPrintLogsForChild("ioeu7bHKq4a5otHN2DursmyuQnT2");
 
-        //To move the top elements under the phone's nav bar so buttons and whatnot
-        //can be pressed
         TopMover mover = new TopMover(this);
         mover.adjustTop();
+
+        showOnboarding();
+    }
+
+    private void showOnboarding() {
+        SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
+        boolean hasBeenShown = prefs.getBoolean("has_shown_parent_dashboard_onboarding", false);
+
+        if (!hasBeenShown) {
+            new TapTargetSequence(this)
+                .targets(
+                    TapTarget.forView(btnAddChild, "Add Your Child", "Tap here to add a new child.")
+                        .id(1),
+                    TapTarget.forView(findViewById(R.id.btnInventory), "Manage Inventory", "Track your medication supplies here.")
+                        .id(2),
+                    TapTarget.forView(btnSwitchProfile, "Switch Profile", "If this is your children's device, you can swap to their view here.")
+                        .id(3),
+                    TapTarget.forView(btnNotifications, "Notifications", "View important alerts and reminders here.")
+                        .id(4)
+                )
+                .listener(new TapTargetSequence.Listener() {
+                    @Override
+                    public void onSequenceFinish() {
+                        prefs.edit().putBoolean("has_shown_parent_dashboard_onboarding", true).apply();
+                    }
+
+                    @Override
+                    public void onSequenceStep(TapTarget lastTarget, boolean targetClicked) {}
+
+                    @Override
+                    public void onSequenceCanceled(TapTarget lastTarget) {}
+                }).start();
+        }
     }
 
     private void debugPrintLogsForChild(String childId) {
@@ -259,7 +283,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         android.util.Log.d("NotificationDebug", "ParentDashboard listener setup for user: " + user.getUid());
 
         SharedPreferences prefs = getSharedPreferences("NotificationWorkerPrefs", MODE_PRIVATE);
-        // If key doesn't exist, initialize it to now so we don't show old history on first run
         if (!prefs.contains("last_check_timestamp")) {
              prefs.edit().putLong("last_check_timestamp", System.currentTimeMillis()).apply();
         }
@@ -288,7 +311,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
                                 if (timestamp != null && timestamp.getTime() > lastCheck) {
                                     android.util.Log.d("NotificationDebug", "New notification: " + title);
-                                    // NotificationHelper.showLocalNotification(this, title, message); // Disabled to avoid duplicates with FCM
                                     
                                     if (timestamp.getTime() > maxTimestamp) {
                                         maxTimestamp = timestamp.getTime();
@@ -336,7 +358,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         input.setHint("Child Name");
         
-        // Add padding
         android.widget.FrameLayout container = new android.widget.FrameLayout(this);
         android.widget.FrameLayout.LayoutParams params = new  android.widget.FrameLayout.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
         params.leftMargin = 50;
@@ -364,7 +385,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         Map<String, Object> child = new HashMap<>();
         child.put("name", name);
         child.put("parentId", user.getUid());
-        // Add default sharing settings
         Map<String, Boolean> sharing = new HashMap<>();
         sharing.put("rescueLogs", false);
         sharing.put("controllerAdherence", false);
@@ -415,7 +435,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                     }
                     adapter.notifyDataSetChanged();
                     
-                    // Now fetch stats for each child
                     for (int i = 0; i < childrenList.size(); i++) {
                         fetchChildStats(childrenList.get(i), i, 7); // Default 7 days
                     }
@@ -439,7 +458,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         
         android.util.Log.d("childparentlink", "Fetching stats for " + child.get("name") + " using ID: " + childId);
         
-        // 1. Fetch Zone (PEF)
         String finalChildId = childId;
         pefRepository.getLastPEFReading(childId, new PEFRepository.LoadCallback<PEFReading>() {
             @Override
@@ -447,7 +465,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 if (reading != null && reading.getZone() != null) {
                     child.put("zone", PersonalBest.getZoneLabel(reading.getZone()));
                 } else {
-                    // Try fetching personal best to see if it's set
                     pefRepository.getPersonalBest(finalChildId, new PEFRepository.LoadCallback<PersonalBest>() {
                         @Override
                         public void onSuccess(PersonalBest pb) {
@@ -464,7 +481,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                             adapter.notifyItemChanged(position);
                         }
                     });
-                    return; // Return early as we handle notify in inner callback
+                    return; 
                 }
                 adapter.notifyItemChanged(position);
                 checkIfAllLoaded();
@@ -478,7 +495,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // 2. Fetch Rescue Stats
         Calendar calendar = Calendar.getInstance();
         Date endDate = calendar.getTime();
         calendar.add(Calendar.DAY_OF_YEAR, -days);
@@ -491,7 +507,7 @@ public class ParentDashboardActivity extends AppCompatActivity {
                 Date lastRescueTime = null;
                 
                 for (RescueInhalerLog log : logs) {
-                    count += log.getDoseCount(); // Count doses, not just events
+                    count += log.getDoseCount(); 
                     if (log.getTimestamp() != null) {
                         if (lastRescueTime == null || log.getTimestamp().after(lastRescueTime)) {
                             lastRescueTime = log.getTimestamp();
@@ -539,10 +555,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
 
     private int loadedCount = 0;
     private void checkIfAllLoaded() {
-        // This is a rough approximation since we have 2 async calls per child
-        // Ideally we'd track exact requests, but for hiding the progress bar this is okay-ish
-        // or we just hide it after the initial list load and let the items update individually.
-        // I'll hide it immediately after list load in loadChildren actually.
         progressBar.setVisibility(View.GONE);
     }
 
@@ -568,7 +580,6 @@ public class ParentDashboardActivity extends AppCompatActivity {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(this);
         builder.setTitle("Edit Child Profile");
 
-        // Create layout programmatically
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
         layout.setPadding(60, 40, 60, 20);

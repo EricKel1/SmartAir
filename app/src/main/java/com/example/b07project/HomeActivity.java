@@ -1,6 +1,7 @@
 package com.example.b07project;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +18,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import androidx.cardview.widget.CardView;
+import android.content.SharedPreferences;
+import android.widget.ScrollView;
+import com.getkeepsafe.taptargetview.TapTarget;
+import com.getkeepsafe.taptargetview.TapTargetSequence;
 
 import android.widget.ImageButton;
 import android.Manifest;
@@ -106,7 +111,49 @@ public class HomeActivity extends AppCompatActivity {
         loadMedicationSchedule();
         checkNotificationPermission();
         loadSharingSettings();
+        showOnboarding();
 
+    }
+
+    private void showOnboarding() {
+        SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
+        // Use a unique preference key for this specific onboarding
+        boolean hasBeenShown = prefs.getBoolean("has_shown_home_onboarding_v1", false);
+
+        if (!hasBeenShown) {
+            new TapTargetSequence(this)
+                    .targets(
+                            TapTarget.forView(findViewById(R.id.btnLogRescueInhaler), "Log Your Medicine", "Tap here to log when you use your rescue inhaler or take your controller medicine.").id(1),
+                            TapTarget.forView(findViewById(R.id.btnDailyCheckIn), "Daily Check-In", "Let us know how you are feeling each day to track your symptoms over time.").id(2),
+                            TapTarget.forView(findViewById(R.id.btnEmergencyTriage), "Safety and Monitoring", "Having trouble breathing? Click here.").id(3),
+                            TapTarget.forView(findViewById(R.id.btnInhalerTechnique), "Inhaler Technique Helper", "Click here to use your inhaler.").id(4),
+                            TapTarget.forView(findViewById(R.id.btnViewPatterns), "Safety and Monitoring", "Look at common trigger patterns here.").id(5),
+                            TapTarget.forView(findViewById(R.id.btnMotivation), "Safety and Monitoring", "View your streaks, badges and other statistics here.").id(6)
+                    )
+                    .listener(new TapTargetSequence.Listener() {
+                        @Override
+                        public void onSequenceFinish() {
+                            // Mark this onboarding as shown
+                            prefs.edit().putBoolean("has_shown_home_onboarding_v1", true).apply();
+                        }
+
+                        @Override
+                        public void onSequenceStep(TapTarget lastTarget, boolean targetClicked) {
+                            if (lastTarget.id() == 3) {
+                                final ScrollView scrollView = findViewById(R.id.home_scroll_view);
+                                if (scrollView != null) {
+                                    scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onSequenceCanceled(TapTarget lastTarget) {
+                            // Also mark as shown if the user cancels
+                            prefs.edit().putBoolean("has_shown_home_onboarding_v1", true).apply();
+                        }
+                    }).start();
+        }
     }
 
     private void loadMedicationSchedule() {

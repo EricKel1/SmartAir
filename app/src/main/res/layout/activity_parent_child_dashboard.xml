@@ -67,8 +67,10 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:padding="16dp">
 
@@ -104,7 +106,7 @@
                     app:cardElevation="4dp"
                     android:clickable="true"
                     android:foreground="?attr/selectableItemBackground">
-                    
+
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
@@ -116,11 +118,12 @@
                             android:orientation="vertical"
                             android:gravity="center"
                             android:padding="16dp">
-                            
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Log\nMedicine"
+                                android:text="Log
+Medicine"
                                 android:textAlignment="center"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
@@ -168,7 +171,8 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Daily\nCheck-in"
+                                android:text="Daily
+Check-in"
                                 android:textAlignment="center"
                                 android:textSize="16sp"
                                 android:textStyle="bold"
@@ -220,7 +224,7 @@
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:textColor="#EF6C00"/>
-                        
+
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -313,7 +317,7 @@
                             android:orientation="horizontal"
                             android:layout_marginTop="8dp"
                             android:gravity="center">
-                            
+
                             <View
                                 android:layout_width="12dp"
                                 android:layout_height="12dp"
@@ -374,7 +378,7 @@
                     app:cardElevation="2dp"
                     android:clickable="true"
                     android:foreground="?attr/selectableItemBackground">
-                    
+
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
@@ -385,7 +389,7 @@
                             android:padding="16dp"
                             android:orientation="horizontal"
                             android:gravity="center_vertical">
-                            
+
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
@@ -393,7 +397,7 @@
                                 android:text="Statistics &amp; Reports"
                                 android:textSize="16sp"
                                 android:textColor="#455A64"/>
-                                
+
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -627,6 +631,11 @@
                             android:visibility="gone"/>
                     </FrameLayout>
                 </androidx.cardview.widget.CardView>
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp" />
+
             </LinearLayout>
 
         </LinearLayout>

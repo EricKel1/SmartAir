@@ -57,6 +57,8 @@ dependencies {
     implementation("com.google.guava:guava:31.1-android")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
+    // Onboarding Library
+    implementation("com.getkeepsafe.taptargetview:taptargetview:1.13.3")
     // Unit tests
     testImplementation(libs.junit)
     testImplementation("org.mockito:mockito-core:5.5.0")

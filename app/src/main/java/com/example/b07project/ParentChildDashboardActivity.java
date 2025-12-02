@@ -1,13 +1,16 @@
 package com.example.b07project;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.b07project.models.ControllerMedicineLog;
@@ -16,6 +19,8 @@ import com.example.b07project.models.PersonalBest;
 import com.example.b07project.repository.ControllerMedicineRepository;
 import com.example.b07project.repository.PEFRepository;
 import com.example.b07project.repository.ScheduleRepository;
+import com.getkeepsafe.taptargetview.TapTarget;
+import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,7 +52,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         childId = getIntent().getStringExtra("EXTRA_CHILD_ID");
         childName = getIntent().getStringExtra("EXTRA_CHILD_NAME");
-        
+
         pefRepository = new PEFRepository();
         scheduleRepository = new ScheduleRepository();
         controllerRepository = new ControllerMedicineRepository();
@@ -59,20 +64,54 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         BackToParent bh = new BackToParent();
         findViewById(R.id.btnBack4).setOnClickListener(v -> bh.backTo(this, ParentDashboardActivity.class));
 
-        //To move the top elements under the phone's nav bar so buttons and whatnot
-        //can be pressed
-//        TopMover mover = new TopMover(this);
-//        mover.adjustTop();
         loadAdherenceData();
+
+        showOnboarding();
+    }
+
+    private void showOnboarding() {
+        SharedPreferences prefs = getSharedPreferences("onboarding", MODE_PRIVATE);
+        boolean hasBeenShown = prefs.getBoolean("has_shown_child_dashboard_onboarding_v2", false);
+
+        if (!hasBeenShown) {
+            new TapTargetSequence(this)
+                .targets(
+                    TapTarget.forView(findViewById(R.id.cardLogMedicine), "Quick Actions", "Use these cards to quickly log events like medication, symptoms, and Peak Flow.").id(1),
+                    TapTarget.forView(findViewById(R.id.cardAdherence), "Medication Adherence", "Set up the expected medication schedule for adherence tracking here.").id(2),
+                    TapTarget.forView(findViewById(R.id.cardStats), "Statistics and Reports", "Tap here to see detailed charts and statistics of your child's data over time.").id(3),
+                    TapTarget.forView(findViewById(R.id.cardPatterns), "Trigger Patterns", "Discover what might be triggering your child's asthma symptoms.").id(4),
+                    TapTarget.forView(findViewById(R.id.cardHistoryMedicine), "History Logs", "Review past entries for medicine, symptoms, Peak Flow, and more.").id(5))
+                .listener(new TapTargetSequence.Listener() {
+                    @Override
+                    public void onSequenceFinish() {
+                        prefs.edit().putBoolean("has_shown_child_dashboard_onboarding_v2", true).apply();
+                    }
+
+                    @Override
+                    public void onSequenceStep(TapTarget lastTarget, boolean targetClicked) {
+                        final NestedScrollView nestedScrollView = findViewById(R.id.nested_scroll_view);
+                        if (nestedScrollView == null) return;
+
+                        // After step 4, scroll down to see the lower cards
+                        if (lastTarget.id() == 4) {
+                            nestedScrollView.post(() -> nestedScrollView.fullScroll(View.FOCUS_DOWN));
+                        }
+                    }
+
+                    @Override
+                    public void onSequenceCanceled(TapTarget lastTarget) {}
+                }).start();
+        }
     }
 
     private void initializeViews() {
         tvChildNameHeader = findViewById(R.id.tvChildNameHeader);
         tvCurrentZoneHeader = findViewById(R.id.tvCurrentZoneHeader);
-        
+
         tvAdherenceDetails = findViewById(R.id.tvAdherenceDetails);
         rvAdherenceCalendar = findViewById(R.id.rvAdherenceCalendar);
-        rvAdherenceCalendar.setLayoutManager(new GridLayoutManager(this, 7)); // 7 days a week
+        rvAdherenceCalendar.setLayoutManager(new GridLayoutManager(this, 7));
+        rvAdherenceCalendar.setNestedScrollingEnabled(false);
 
         btnConfigureSchedule = findViewById(R.id.btnConfigureSchedule);
 
@@ -80,6 +119,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
             tvChildNameHeader.setText(childName);
         }
     }
+
 
     private void setupListeners() {
         // Quick Actions
@@ -133,8 +173,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     private void calculateAdherence(MedicationSchedule schedule) {
         // Calculate for last 30 days
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -29); // Go back 29 days to include today (30 days total)
-        // Reset to start of day
+        cal.add(Calendar.DAY_OF_YEAR, -29);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -151,26 +190,21 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
                 Calendar iteratorCal = (Calendar) cal.clone();
                 Calendar today = Calendar.getInstance();
 
-                // Normalize schedule start date
                 Date scheduleStart = schedule.getStartDate();
                 if (scheduleStart == null) {
-                    // If no start date, assume it started 30 days ago (so we see data)
                     scheduleStart = startDate;
                 }
 
-                // Iterate through the last 30 days
                 for (int i = 0; i < 30; i++) {
                     Date currentDate = iteratorCal.getTime();
                     String dayText = dayFormat.format(currentDate);
                     int color;
 
-                    // Check if this day is before the schedule started
                     if (currentDate.before(scheduleStart) && !isSameDay(currentDate, scheduleStart)) {
-                        color = Color.parseColor("#E0E0E0"); // Grey
+                        color = Color.parseColor("#E0E0E0");
                     } else if (iteratorCal.after(today)) {
-                         color = Color.parseColor("#E0E0E0"); // Future (shouldn't happen with logic but safe)
+                         color = Color.parseColor("#E0E0E0");
                     } else {
-                        // Count logs for this day
                         int logsCount = 0;
                         for (ControllerMedicineLog log : logs) {
                             if (isSameDay(log.getTimestamp(), currentDate)) {
@@ -179,11 +213,11 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
                         }
 
                         if (logsCount >= schedule.getFrequency()) {
-                            color = Color.parseColor("#4CAF50"); // Green
+                            color = Color.parseColor("#4CAF50");
                         } else if (logsCount > 0) {
-                            color = Color.parseColor("#FFC107"); // Yellow
+                            color = Color.parseColor("#FFC107");
                         } else {
-                            color = Color.parseColor("#F44336"); // Red
+                            color = Color.parseColor("#F44336");
                         }
                     }
 
@@ -272,27 +306,22 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     }
 
     private void updateBadges(Map<String, Boolean> settings) {
-        // Medication
         boolean shareMedication = Boolean.TRUE.equals(settings.get("medication"));
         setViewVisibility(R.id.badgeLogMedicine, shareMedication);
         setViewVisibility(R.id.badgeHistoryMedicine, shareMedication);
 
-        // Symptoms
         boolean shareSymptoms = Boolean.TRUE.equals(settings.get("symptoms"));
         setViewVisibility(R.id.badgeDailyCheckIn, shareSymptoms);
         setViewVisibility(R.id.badgeHistoryCheckIn, shareSymptoms);
 
-        // PEF / Safety
         boolean sharePEF = Boolean.TRUE.equals(settings.get("pef"));
         setViewVisibility(R.id.badgeEnterPEF, sharePEF);
         setViewVisibility(R.id.badgeHistoryPEF, sharePEF);
         setViewVisibility(R.id.badgeHistoryIncidents, sharePEF);
 
-        // Patterns
         boolean sharePatterns = Boolean.TRUE.equals(settings.get("patterns"));
         setViewVisibility(R.id.badgePatterns, sharePatterns);
 
-        // Stats
         boolean shareStats = Boolean.TRUE.equals(settings.get("stats"));
         setViewVisibility(R.id.badgeStats, shareStats);
     }
@@ -307,8 +336,8 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadChildData(); // Refresh zone on return
+        loadChildData();
         loadSharingSettings();
-        loadAdherenceData(); // Refresh adherence
+        loadAdherenceData();
     }
 }
