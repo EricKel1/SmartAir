@@ -35,46 +35,102 @@ public class PEFRepository {
 
     // PEF Reading operations
     public void savePEFReading(PEFReading reading, SaveCallback callback) {
-        // Get personal best first to calculate zone
+        android.util.Log.d("PEF_ZoneLogic", "--- Starting savePEFReading for value: " + reading.getValue() + " ---");
+
         getPersonalBest(reading.getUserId(), new LoadCallback<PersonalBest>() {
             @Override
             public void onSuccess(PersonalBest pb) {
-                if (pb != null) {
-                    String zone = PersonalBest.calculateZone(reading.getValue(), pb.getValue());
-                    reading.setZone(zone);
-                    reading.setPersonalBest(pb.getValue());
-                    
-                    // Check if zone changed from last reading
-                    getLastPEFReading(reading.getUserId(), new LoadCallback<PEFReading>() {
-                        @Override
-                        public void onSuccess(PEFReading lastReading) {
-                            if (lastReading != null && !zone.equals(lastReading.getZone())) {
-                                // Log zone change
-                                logZoneChange(reading.getUserId(), lastReading.getZone(), zone, 
-                                    reading.getValue(), pb.getValue(), null);
-                            }
-                            savePEFReadingToFirestore(reading, callback);
-                        }
-
-                        @Override
-                        public void onFailure(String error) {
-                            // Still save reading even if we couldn't get last reading
-                            savePEFReadingToFirestore(reading, callback);
-                        }
-                    });
-                } else {
+                if (pb == null) {
+                    android.util.Log.w("PEF_ZoneLogic", "No PersonalBest. Saving with 'unknown' zone.");
                     reading.setZone("unknown");
                     savePEFReadingToFirestore(reading, callback);
+                    return;
                 }
+                android.util.Log.d("PEF_ZoneLogic", "PersonalBest found: " + pb.getValue());
+
+                // We need the last reading's zone BEFORE we do anything else
+                getLastPEFReading(reading.getUserId(), new LoadCallback<PEFReading>() {
+                    @Override
+                    public void onSuccess(PEFReading lastReading) {
+                        String previousDayZone = (lastReading != null) ? lastReading.getZone() : "unknown";
+                        android.util.Log.d("PEF_ZoneLogic", "The zone of the last saved entry was: '" + previousDayZone + "'");
+
+                        // Now, get the rest of today's readings to determine the new zone
+                        getReadingsForToday(reading.getUserId(), new LoadCallback<List<PEFReading>>() {
+                            @Override
+                            public void onSuccess(List<PEFReading> todaysReadings) {
+                                android.util.Log.d("PEF_ZoneLogic", "Found " + todaysReadings.size() + " previous readings for today.");
+                                List<String> todaysZones = new ArrayList<>();
+
+                                // Add the zone from the NEW reading
+                                String newReadingZone = PersonalBest.calculateZone(reading.getValue(), pb.getValue());
+                                todaysZones.add(newReadingZone);
+                                android.util.Log.d("PEF_ZoneLogic", "Current reading (value: " + reading.getValue() + ") has individual zone: " + newReadingZone);
+
+                                // Add zones from all PREVIOUS readings today
+                                for (PEFReading r : todaysReadings) {
+                                    todaysZones.add(PersonalBest.calculateZone(r.getValue(), pb.getValue()));
+                                }
+
+                                // Determine the BEST zone from all zones collected today
+                                String bestZoneToday = getBestZone(todaysZones);
+                                android.util.Log.i("PEF_ZoneLogic", "FINAL BEST ZONE for today is: '" + bestZoneToday + "'.");
+
+                                // Set the new reading's zone to the day's best zone
+                                reading.setZone(bestZoneToday);
+                                reading.setPersonalBest(pb.getValue());
+
+                                // Compare the new final zone with the last saved entry's zone
+                                if (!bestZoneToday.equals(previousDayZone)) {
+                                    android.util.Log.i("PEF_ZoneLogic", "ZONE CHANGE DETECTED: From " + previousDayZone + " to " + bestZoneToday);
+                                    logZoneChange(reading.getUserId(), previousDayZone, bestZoneToday,
+                                            reading.getValue(), pb.getValue(), null);
+                                } else {
+                                    android.util.Log.d("PEF_ZoneLogic", "No change in daily zone. Both are '" + bestZoneToday + "'");
+                                }
+
+                                savePEFReadingToFirestore(reading, callback);
+                            }
+
+                            @Override
+                            public void onFailure(String error) {
+                                // Fallback logic
+                                android.util.Log.e("PEF_ZoneLogic", "Could not get today's readings: " + error);
+                                String zone = PersonalBest.calculateZone(reading.getValue(), pb.getValue());
+                                reading.setZone(zone);
+                                reading.setPersonalBest(pb.getValue());
+                                if (!zone.equals(previousDayZone)) {
+                                    logZoneChange(reading.getUserId(), previousDayZone, zone, reading.getValue(), pb.getValue(), null);
+                                }
+                                savePEFReadingToFirestore(reading, callback);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        // This is if getLastPEFReading fails, it's not critical. We just can't log a zone change.
+                        android.util.Log.e("PEF_ZoneLogic", "Could not get last reading: " + error + ". Proceeding without zone change check.");
+                        // Since we can't check the last zone, we just run the main logic without the check.
+                        // This block is now redundant because the logic is nested, but we'll keep it as a safeguard.
+                        String zone = PersonalBest.calculateZone(reading.getValue(), pb.getValue());
+                        reading.setZone(zone);
+                        reading.setPersonalBest(pb.getValue());
+                        savePEFReadingToFirestore(reading, callback);
+                    }
+                });
             }
 
             @Override
             public void onFailure(String error) {
+                android.util.Log.e("PEF_ZoneLogic", "CRITICAL: Could not get PersonalBest: " + error);
                 reading.setZone("unknown");
                 savePEFReadingToFirestore(reading, callback);
             }
         });
     }
+
+
 
     private void savePEFReadingToFirestore(PEFReading reading, SaveCallback callback) {
         Map<String, Object> data = new HashMap<>();
@@ -301,4 +357,83 @@ public class PEFRepository {
                 }
             });
     }
+
+    public void getReadingsForToday(String userId, LoadCallback<List<PEFReading>> callback) {
+        // Set up start and end of the current day
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
+        cal.set(java.util.Calendar.MINUTE, 0);
+        cal.set(java.util.Calendar.SECOND, 0);
+        Date startOfDay = cal.getTime();
+
+        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
+        cal.set(java.util.Calendar.MINUTE, 59);
+        cal.set(java.util.Calendar.SECOND, 59);
+        Date endOfDay = cal.getTime();
+
+        db.collection(PEF_COLLECTION)
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("timestamp", startOfDay)
+                .whereLessThanOrEqualTo("timestamp", endOfDay)
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    List<PEFReading> readings = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        PEFReading reading = new PEFReading();
+                        Long valueLong = doc.getLong("value");
+                        reading.setValue(valueLong != null ? valueLong.intValue() : 0);
+                        // We only need the value for this logic, but can fill in more if needed
+                        readings.add(reading);
+                    }
+                    callback.onSuccess(readings);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    private void handleZoneChangeAndSave(PEFReading reading, PersonalBest pb, SaveCallback callback) {
+        getLastPEFReading(reading.getUserId(), new LoadCallback<PEFReading>() {
+            @Override
+            public void onSuccess(PEFReading lastReading) {
+                if (lastReading != null && lastReading.getZone() != null) {
+                    android.util.Log.d("PEF_ZoneLogic", "Comparing new zone '" + reading.getZone() + "' with last reading's zone '" + lastReading.getZone() + "'");
+                    if (!reading.getZone().equals(lastReading.getZone())) {
+                        android.util.Log.i("PEF_ZoneLogic", "ZONE CHANGE DETECTED: From " + lastReading.getZone() + " to " + reading.getZone());
+                        logZoneChange(reading.getUserId(), lastReading.getZone(), reading.getZone(),
+                                reading.getValue(), pb.getValue(), null);
+                    }
+                } else {
+                    android.util.Log.d("PEF_ZoneLogic", "No previous reading found to compare zones.");
+                }
+                savePEFReadingToFirestore(reading, callback);
+            }
+
+            @Override
+            public void onFailure(String error) {
+                android.util.Log.e("PEF_ZoneLogic", "Failed to get last PEF reading: " + error + ". Saving new reading anyway.");
+                savePEFReadingToFirestore(reading, callback);
+            }
+        });
+    }
+
+
+    private String getBestZone(List<String> zones) {
+        android.util.Log.d("PEF_ZoneLogic", "Finding best zone from list: " + zones.toString());
+        if (zones.contains("green")) {
+            android.util.Log.d("PEF_ZoneLogic", "Best zone is 'green'");
+            return "green";
+        }
+        if (zones.contains("yellow")) {
+            android.util.Log.d("PEF_ZoneLogic", "Best zone is 'yellow'");
+            return "yellow";
+        }
+        if (zones.contains("red")) {
+            android.util.Log.d("PEF_ZoneLogic", "Best zone is 'red'");
+            return "red";
+        }
+        android.util.Log.d("PEF_ZoneLogic", "No best zone found, defaulting to 'unknown'");
+        return "unknown"; // Default case
+    }
+
+
+
 }
