@@ -396,13 +396,9 @@ public class HomeActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        btnViewIncidents.setOnClickListener(v -> {
-            Intent intent = new Intent(this, IncidentHistoryActivity.class);
-            if (dataOwnerId != null) {
-                intent.putExtra("EXTRA_CHILD_ID", dataOwnerId);
-            }
-            startActivity(intent);
-        });
+        // Hide Incident History button for child dashboard
+        // This feature is only available on parent/provider dashboards
+        btnViewIncidents.setVisibility(View.GONE);
 
         btnInhalerTechnique.setOnClickListener(v -> {
             Intent intent = new Intent(this, InhalerTechniqueActivity.class);
