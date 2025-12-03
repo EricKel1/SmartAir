@@ -386,13 +386,11 @@ public class ParentDashboardActivity extends AppCompatActivity {
         child.put("name", name);
         child.put("parentId", user.getUid());
         Map<String, Boolean> sharing = new HashMap<>();
-        sharing.put("rescueLogs", false);
-        sharing.put("controllerAdherence", false);
+        sharing.put("medication", false);
         sharing.put("symptoms", false);
-        sharing.put("triggers", false);
         sharing.put("pef", false);
-        sharing.put("triage", false);
-        sharing.put("summaryCharts", false);
+        sharing.put("patterns", false);
+        sharing.put("stats", false);
         child.put("sharingSettings", sharing);
 
         FirebaseFirestore.getInstance().collection("children")

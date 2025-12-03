@@ -238,26 +238,36 @@ public class MotivationService {
         }
         final String finalUserId = userId;
         
-        db.collection("badges")
-                .whereEqualTo("userId", finalUserId)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    List<Badge> badges = new ArrayList<>();
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        Badge badge = doc.toObject(Badge.class);
-                        if (badge != null) {
-                            badges.add(badge);
+        ensureAllBadgesExist(() -> {
+            db.collection("badges")
+                    .whereEqualTo("userId", finalUserId)
+                    .get()
+                    .addOnSuccessListener(querySnapshot -> {
+                        List<Badge> badges = new ArrayList<>();
+                        for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                            Badge badge = doc.toObject(Badge.class);
+                            if (badge != null) {
+                                badge.setId(doc.getId());
+                                badges.add(badge);
+                            }
                         }
-                    }
-                    
-                    // Initialize badges if none exist
-                    if (badges.isEmpty()) {
-                        initializeBadges(callback);
-                    } else {
                         callback.onSuccess(badges);
-                    }
-                })
-                .addOnFailureListener(callback::onFailure);
+                    })
+                    .addOnFailureListener(callback::onFailure);
+        });
+    }
+
+    private void ensureAllBadgesExist(Runnable onComplete) {
+        ensureFirstRescueBadgeExists(() -> {
+            ensureTechniqueBadgeExists(() -> {
+                ensurePerfectWeekBadgeExists(() -> {
+                    SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                    int rescueThreshold = prefs.getInt("low_rescue_threshold", DEFAULT_LOW_RESCUE_THRESHOLD);
+                    int rescuePeriod = prefs.getInt("low_rescue_period", DEFAULT_LOW_RESCUE_PERIOD);
+                    ensureLowRescueBadgeExists(rescueThreshold, rescuePeriod, onComplete);
+                });
+            });
+        });
     }
 
     private void initializeBadges(BadgeListCallback callback) {
@@ -755,7 +765,11 @@ public class MotivationService {
                                             android.util.Log.d("RescueInhalerService", "Can earn badge (account old enough): " + canEarnBadge);
                                             android.util.Log.d("RescueInhalerService", "Is end of month period: " + isEndOfMonth);
                                             
-                                            if (!badge.isEarned() && canEarnBadge && isEndOfMonth && totalRescueUses <= rescueThreshold) {
+                                            // Use the requirement from the badge itself, not the passed preference
+                                            // This ensures per-user settings are respected
+                                            int actualThreshold = badge.getRequirement();
+                                            
+                                            if (!badge.isEarned() && canEarnBadge && isEndOfMonth && totalRescueUses <= actualThreshold) {
                                                 badge.setEarned(true);
                                                 badge.setEarnedDate(System.currentTimeMillis());
                                                 android.util.Log.d("RescueInhalerService", "🎉 BADGE EARNED for month " + currentMonthIndex + "!");
@@ -765,7 +779,7 @@ public class MotivationService {
                                                 }
                                             } else {
                                                 android.util.Log.d("RescueInhalerService", "Badge NOT earned (earned=" + badge.isEarned() + 
-                                                    ", canEarn=" + canEarnBadge + ", endOfMonth=" + isEndOfMonth + ", uses=" + totalRescueUses + "<=" + rescueThreshold + ")");
+                                                    ", canEarn=" + canEarnBadge + ", endOfMonth=" + isEndOfMonth + ", uses=" + totalRescueUses + "<=" + actualThreshold + ")");
                                             }
 
                                             android.util.Log.d("RescueInhalerService", "Saving badge to Firestore...");
@@ -847,8 +861,10 @@ public class MotivationService {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        Badge badge = querySnapshot.getDocuments().get(0).toObject(Badge.class);
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        Badge badge = doc.toObject(Badge.class);
                         if (badge != null) {
+                            badge.setId(doc.getId());
                             badge.setRequirement(techniqueSessions);
                             badge.setDescription("Complete " + techniqueSessions + " high-quality technique practice sessions");
                             saveBadge(badge, null);
@@ -863,8 +879,10 @@ public class MotivationService {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     if (!querySnapshot.isEmpty()) {
-                        Badge badge = querySnapshot.getDocuments().get(0).toObject(Badge.class);
+                        DocumentSnapshot doc = querySnapshot.getDocuments().get(0);
+                        Badge badge = doc.toObject(Badge.class);
                         if (badge != null) {
+                            badge.setId(doc.getId());
                             badge.setRequirement(lowRescueThreshold);
                             badge.setDescription("Use rescue inhaler ≤" + lowRescueThreshold + " times in " + lowRescuePeriod + " days");
                             saveBadge(badge, null);
@@ -906,20 +924,24 @@ public class MotivationService {
                     }
                     
                     // Delete duplicates (keep only the first one of each type)
-                    int deletionsNeeded = 0;
+                    List<com.google.android.gms.tasks.Task<Void>> deleteTasks = new ArrayList<>();
                     for (Map.Entry<String, List<DocumentSnapshot>> entry : badgesByType.entrySet()) {
                         List<DocumentSnapshot> badges = entry.getValue();
                         if (badges.size() > 1) {
                             // Delete all except the first one
                             for (int i = 1; i < badges.size(); i++) {
-                                deletionsNeeded++;
-                                badges.get(i).getReference().delete();
+                                deleteTasks.add(badges.get(i).getReference().delete());
                             }
                         }
                     }
                     
-                    if (callback != null) {
-                        callback.onComplete();
+                    if (deleteTasks.isEmpty()) {
+                        if (callback != null) callback.onComplete();
+                    } else {
+                        com.google.android.gms.tasks.Tasks.whenAll(deleteTasks)
+                                .addOnCompleteListener(task -> {
+                                    if (callback != null) callback.onComplete();
+                                });
                     }
                 })
                 .addOnFailureListener(e -> {
