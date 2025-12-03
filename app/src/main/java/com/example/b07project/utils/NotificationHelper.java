@@ -2,9 +2,12 @@ package com.example.b07project.utils;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import androidx.core.app.NotificationCompat;
+import com.example.b07project.MainActivity;
 import com.example.b07project.R;
 import com.example.b07project.models.AppNotification;
 import com.example.b07project.repository.NotificationRepository;
@@ -19,8 +22,8 @@ public class NotificationHelper {
     public static void sendAlert(Context context, String userId, String title, String message) {
         android.util.Log.d("NotificationDebug", "sendAlert START. userId=" + userId + ", title=" + title);
 
-        // 1. Send System Notification (Local) - DISABLED to avoid duplicates with FCM
-        // showLocalNotification(context, title, message);
+        // 1. Send System Notification (Local) - Enabled to ensure immediate feedback
+        showLocalNotification(context, title, message);
         
         // 2. Save to Firestore
         // We check the 'users' collection FIRST because it's the most reliable source 
@@ -29,20 +32,22 @@ public class NotificationHelper {
         
         db.collection("users").document(userId).get().addOnSuccessListener(doc -> {
             android.util.Log.d("NotificationDebug", "Users collection lookup success. Exists: " + doc.exists());
-            String targetId = userId;
             if (doc.exists()) {
                 String parentId = doc.getString("parentId");
                 android.util.Log.d("NotificationDebug", "Found parentId in users: " + parentId);
                 if (parentId != null && !parentId.isEmpty()) {
-                    targetId = parentId;
+                    // This is a child user in users collection with a parentId - send to parent
+                    saveToFirestore(parentId, title, message);
                 } else {
-                    // If not found in users, try children collection as backup
-                    // (This handles cases where the user profile might not be fully synced but the link exists)
+                    // This is a parent user (no parentId) - check children collection in case 
+                    // the userId is actually a child document ID
                     checkChildrenCollection(userId, title, message);
-                    return;
                 }
+            } else {
+                // User not found in users collection - check children collection
+                android.util.Log.d("NotificationDebug", "User not in users collection, checking children...");
+                checkChildrenCollection(userId, title, message);
             }
-            saveToFirestore(targetId, title, message);
         }).addOnFailureListener(e -> {
             android.util.Log.w("NotificationDebug", "Users collection lookup failed: " + e.getMessage());
             // Fallback to children collection
@@ -85,12 +90,17 @@ public class NotificationHelper {
             manager.createNotificationChannel(channel);
         }
 
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true);
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
 
         manager.notify((int) System.currentTimeMillis(), builder.build());
     }
