@@ -66,6 +66,7 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     private SimpleDateFormat dateFormat;
     private KonfettiView konfettiView;
     private String childId;
+    private boolean badgeEarned = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +85,7 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         
         // Setup badge earned callback
         motivationService.setBadgeEarnedCallback(badge -> {
+            badgeEarned = true;
             runOnUiThread(() -> showBadgeEarnedNotification(badge));
         });
 
@@ -238,10 +240,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             // Continue with existing flow
                             motivationService.updateControllerStreak(() -> {
                                 showLoading(false);
-                                Toast.makeText(LogRescueInhalerActivity.this, 
-                                    "Controller medicine logged successfully! Streak updated.", 
-                                    Toast.LENGTH_LONG).show();
-                                finish();
+                                if (!badgeEarned) {
+                                    Toast.makeText(LogRescueInhalerActivity.this, 
+                                        "Controller medicine logged successfully! Streak updated.", 
+                                        Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
                             });
                         }
                         @Override
@@ -250,10 +254,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             android.util.Log.e("Inventory", "Failed to decrement: " + error);
                             motivationService.updateControllerStreak(() -> {
                                 showLoading(false);
-                                Toast.makeText(LogRescueInhalerActivity.this, 
-                                    "Controller medicine logged successfully! Streak updated.", 
-                                    Toast.LENGTH_LONG).show();
-                                finish();
+                                if (!badgeEarned) {
+                                    Toast.makeText(LogRescueInhalerActivity.this, 
+                                        "Controller medicine logged successfully! Streak updated.", 
+                                        Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
                             });
                         }
                     });
@@ -298,6 +304,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                                 // Check low rescue badge after test badge
                                 motivationService.checkLowRescueBadge(() -> {
                                     // Delay finish to allow dialog to show
+                                    if (!badgeEarned) {
+                                        Toast.makeText(LogRescueInhalerActivity.this, 
+                                            "Rescue inhaler use logged successfully!", 
+                                            Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
                                 });
                             });
                         }
@@ -306,7 +318,14 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             android.util.Log.e("Inventory", "Failed to decrement: " + error);
                             showLoading(false);
                             motivationService.checkFirstRescueBadge(() -> {
-                                motivationService.checkLowRescueBadge(() -> {});
+                                motivationService.checkLowRescueBadge(() -> {
+                                    if (!badgeEarned) {
+                                        Toast.makeText(LogRescueInhalerActivity.this, 
+                                            "Rescue inhaler use logged successfully!", 
+                                            Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                });
                             });
                         }
                     });

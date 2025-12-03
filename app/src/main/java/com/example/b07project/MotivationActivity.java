@@ -90,9 +90,16 @@ public class MotivationActivity extends AppCompatActivity {
         android.util.Log.d("RescueInhalerService", "loadData() called");
         
         // Update badge progress before loading
+        // Chain all badge checks to ensure everything is up to date
         motivationService.checkLowRescueBadge(() -> {
-            loadStreaks();
-            loadBadges();
+            motivationService.checkFirstRescueBadge(() -> {
+                motivationService.updateControllerStreak(() -> {
+                    motivationService.updateTechniqueStreak(() -> {
+                        loadStreaks();
+                        loadBadges();
+                    });
+                });
+            });
         });
     }
 
