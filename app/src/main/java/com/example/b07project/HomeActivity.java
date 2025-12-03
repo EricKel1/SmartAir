@@ -17,6 +17,10 @@ import com.example.b07project.models.ControllerMedicineLog;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.firestore.SetOptions;
+import java.util.HashMap;
+import java.util.Map;
 import androidx.cardview.widget.CardView;
 import android.content.SharedPreferences;
 import android.widget.ScrollView;
@@ -56,6 +60,17 @@ public class HomeActivity extends AppCompatActivity {
         controllerRepository = new ControllerMedicineRepository();
         initializeViews();
         setupListeners();
+
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    android.util.Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                    return;
+                }
+                String token = task.getResult();
+                android.util.Log.d("FCM", "FCM Token: " + token);
+                saveFCMToken(token);
+            });
 
         String childId = getIntent().getStringExtra("EXTRA_CHILD_ID");
         String childName = getIntent().getStringExtra("EXTRA_CHILD_NAME");
@@ -504,6 +519,18 @@ public class HomeActivity extends AppCompatActivity {
         super.onDestroy();
         if (sharingSettingsListener != null) {
             sharingSettingsListener.remove();
+        }
+    }
+
+    private void saveFCMToken(String token) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("fcmToken", token);
+            FirebaseFirestore.getInstance().collection("users").document(user.getUid())
+                .set(updates, SetOptions.merge())
+                .addOnSuccessListener(aVoid -> android.util.Log.d("FCM", "Token saved to Firestore"))
+                .addOnFailureListener(e -> android.util.Log.e("FCM", "Error saving token", e));
         }
     }
 }

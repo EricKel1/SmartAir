@@ -90,7 +90,7 @@ public class ProviderChildInfoActivity extends AppCompatActivity {
                     addItemIfShared(sharing, "symptoms", "Symptom History", "View historical symptom check-ins", v -> openActivity(SymptomHistoryActivity.class));
                     addItemIfShared(sharing, "medication", "Medicine Logs", "View rescue/controller medicine history", v -> openActivity(RescueInhalerHistoryActivity.class));
                     addItemIfShared(sharing, "pef", "PEF Readings", "View peak flow history", v -> openActivity(PEFHistoryActivity.class));
-                    addItemIfShared(sharing, "triage", "Incidents", "View emergency triage incidents", v -> openActivity(IncidentHistoryActivity.class));
+                    addItemIfShared(sharing, "pef", "Incidents", "View emergency triage incidents", v -> openActivity(IncidentHistoryActivity.class));
                     addItemIfShared(sharing, "patterns", "Trigger Patterns", "View trigger analytics", v -> openActivity(TriggerPatternsActivity.class));
                     // Show Stats & Reports when parent enabled 'stats' sharing
                     boolean shareStats = Boolean.TRUE.equals(sharing.get("stats"));

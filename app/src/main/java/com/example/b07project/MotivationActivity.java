@@ -25,6 +25,8 @@ public class MotivationActivity extends AppCompatActivity {
     private BadgeAdapter badgeAdapter;
     private MotivationService motivationService;
 
+    private boolean isCleaningUp = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +52,11 @@ public class MotivationActivity extends AppCompatActivity {
         setupListeners();
         
         android.util.Log.d("RescueInhalerService", "Starting cleanup and data load...");
+        isCleaningUp = true;
         // Clean up any duplicate badges before loading
         motivationService.cleanupDuplicateBadges(() -> {
             android.util.Log.d("RescueInhalerService", "Cleanup complete, loading data...");
+            isCleaningUp = false;
             loadData();
         });
         //To move the top elements under the phone's nav bar so buttons and whatnot
@@ -86,9 +90,16 @@ public class MotivationActivity extends AppCompatActivity {
         android.util.Log.d("RescueInhalerService", "loadData() called");
         
         // Update badge progress before loading
+        // Chain all badge checks to ensure everything is up to date
         motivationService.checkLowRescueBadge(() -> {
-            loadStreaks();
-            loadBadges();
+            motivationService.checkFirstRescueBadge(() -> {
+                motivationService.updateControllerStreak(() -> {
+                    motivationService.updateTechniqueStreak(() -> {
+                        loadStreaks();
+                        loadBadges();
+                    });
+                });
+            });
         });
     }
 
@@ -153,6 +164,10 @@ public class MotivationActivity extends AppCompatActivity {
 
     private void openSettings() {
         Intent intent = new Intent(this, MotivationSettingsActivity.class);
+        String childId = getIntent().getStringExtra("EXTRA_CHILD_ID");
+        if (childId != null) {
+            intent.putExtra("EXTRA_CHILD_ID", childId);
+        }
         startActivity(intent);
     }
 
@@ -160,7 +175,9 @@ public class MotivationActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         android.util.Log.d("RescueInhalerService", "=== MOTIVATION ACTIVITY RESUMED ===");
-        // Refresh data when returning from settings
-        loadData();
+        // Refresh data when returning from settings, but only if not currently cleaning up
+        if (!isCleaningUp) {
+            loadData();
+        }
     }
 }

@@ -24,7 +24,19 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // If you want to send messages to this application instance or
         // manage this apps subscriptions on the server side, send the
         // FCM registration token to your app server.
-        // sendRegistrationToServer(token);
+        sendRegistrationToServer(token);
+    }
+
+    private void sendRegistrationToServer(String token) {
+        com.google.firebase.auth.FirebaseUser user = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .document(user.getUid())
+                    .set(java.util.Collections.singletonMap("fcmToken", token), com.google.firebase.firestore.SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> android.util.Log.d("FCM", "Token updated in Firestore for user: " + user.getUid()))
+                    .addOnFailureListener(e -> android.util.Log.e("FCM", "Failed to update token", e));
+        }
     }
 
     @Override

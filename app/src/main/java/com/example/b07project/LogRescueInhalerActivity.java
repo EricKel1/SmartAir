@@ -49,10 +49,7 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     
     private RadioGroup rgMedicineType, rgPostDoseStatus;
     private RadioButton rbRescue, rbController, rbBetter, rbSame, rbWorse;
-    private ConstraintLayout controllerOnlySection;
-    private TextView tvTimestamp, tvDoseCount, tvMessage, tvScheduledTime;
-    private Button btnSelectTime;
-    private CheckBox cbTakenOnTime;
+    private TextView tvTimestamp, tvDoseCount, tvMessage;
     private CheckBox cbTriggerExercise, cbTriggerColdAir, cbTriggerPets, cbTriggerPollen;
     private CheckBox cbTriggerStress, cbTriggerSmoke, cbTriggerWeather, cbTriggerDust;
     private RatingBar ratingBarBreath;
@@ -62,15 +59,14 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     
     private int doseCount = 1;
     private Date timestamp;
-    private Date scheduledTime = null;
     private RescueInhalerRepository rescueRepository;
     private ControllerMedicineRepository controllerRepository;
     private InventoryRepository inventoryRepository;
     private MotivationService motivationService;
     private SimpleDateFormat dateFormat;
-    private SimpleDateFormat timeFormat;
     private KonfettiView konfettiView;
     private String childId;
+    private boolean badgeEarned = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,10 +82,10 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         inventoryRepository = new InventoryRepository(this);
         motivationService = new MotivationService(this);
         dateFormat = new SimpleDateFormat("MMM dd, yyyy 'at' hh:mm a", Locale.getDefault());
-        timeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
         
         // Setup badge earned callback
         motivationService.setBadgeEarnedCallback(badge -> {
+            badgeEarned = true;
             runOnUiThread(() -> showBadgeEarnedNotification(badge));
         });
 
@@ -108,13 +104,9 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         rgMedicineType = findViewById(R.id.rgMedicineType);
         rbRescue = findViewById(R.id.rbRescue);
         rbController = findViewById(R.id.rbController);
-        controllerOnlySection = findViewById(R.id.controllerOnlySection);
         tvTimestamp = findViewById(R.id.tvTimestamp);
         tvDoseCount = findViewById(R.id.tvDoseCount);
         tvMessage = findViewById(R.id.tvMessage);
-        tvScheduledTime = findViewById(R.id.tvScheduledTime);
-        btnSelectTime = findViewById(R.id.btnSelectTime);
-        cbTakenOnTime = findViewById(R.id.cbTakenOnTime);
         cbTriggerExercise = findViewById(R.id.cbTriggerExercise);
         cbTriggerColdAir = findViewById(R.id.cbTriggerColdAir);
         cbTriggerPets = findViewById(R.id.cbTriggerPets);
@@ -138,17 +130,6 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        rgMedicineType.setOnCheckedChangeListener((group, checkedId) -> {
-            boolean isController = checkedId == R.id.rbController;
-            controllerOnlySection.setVisibility(isController ? View.VISIBLE : View.GONE);
-            if (!isController) {
-                scheduledTime = null;
-                tvScheduledTime.setText("Not selected");
-                cbTakenOnTime.setChecked(false);
-            }
-        });
-        
-        btnSelectTime.setOnClickListener(v -> showTimePickerDialog());
         
         btnDecrease.setOnClickListener(v -> {
             if (doseCount > 1) {
@@ -167,32 +148,7 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         btnSave.setOnClickListener(v -> saveLog());
     }
 
-    private void showTimePickerDialog() {
-        Calendar calendar = Calendar.getInstance();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
 
-        TimePickerDialog timePickerDialog = new TimePickerDialog(
-            this,
-            (view, selectedHour, selectedMinute) -> {
-                Calendar scheduledCal = Calendar.getInstance();
-                scheduledCal.set(Calendar.HOUR_OF_DAY, selectedHour);
-                scheduledCal.set(Calendar.MINUTE, selectedMinute);
-                scheduledCal.set(Calendar.SECOND, 0);
-                scheduledTime = scheduledCal.getTime();
-                tvScheduledTime.setText(timeFormat.format(scheduledTime));
-
-                // Auto-detect if taken on time (within 30 minutes)
-                long timeDiff = Math.abs(timestamp.getTime() - scheduledTime.getTime());
-                boolean onTime = timeDiff <= 30 * 60 * 1000; // 30 minutes in milliseconds
-                cbTakenOnTime.setChecked(onTime);
-            },
-            hour,
-            minute,
-            false
-        );
-        timePickerDialog.show();
-    }
 
     private void updateTimestampDisplay() {
         tvTimestamp.setText(dateFormat.format(timestamp));
@@ -223,11 +179,6 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
         }
         
         boolean isController = rbController.isChecked();
-
-        if (isController && scheduledTime == null) {
-            showMessage("Please select a scheduled time", true);
-            return;
-        }
 
         showLoading(true);
         
@@ -270,8 +221,8 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                 targetUserId,
                 timestamp,
                 doseCount,
-                scheduledTime,
-                cbTakenOnTime.isChecked(),
+                null, // scheduledTime
+                false, // takenOnTime
                 triggers,
                 notes.isEmpty() ? null : notes
             );
@@ -289,10 +240,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             // Continue with existing flow
                             motivationService.updateControllerStreak(() -> {
                                 showLoading(false);
-                                Toast.makeText(LogRescueInhalerActivity.this, 
-                                    "Controller medicine logged successfully! Streak updated.", 
-                                    Toast.LENGTH_LONG).show();
-                                finish();
+                                if (!badgeEarned) {
+                                    Toast.makeText(LogRescueInhalerActivity.this, 
+                                        "Controller medicine logged successfully! Streak updated.", 
+                                        Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
                             });
                         }
                         @Override
@@ -301,10 +254,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             android.util.Log.e("Inventory", "Failed to decrement: " + error);
                             motivationService.updateControllerStreak(() -> {
                                 showLoading(false);
-                                Toast.makeText(LogRescueInhalerActivity.this, 
-                                    "Controller medicine logged successfully! Streak updated.", 
-                                    Toast.LENGTH_LONG).show();
-                                finish();
+                                if (!badgeEarned) {
+                                    Toast.makeText(LogRescueInhalerActivity.this, 
+                                        "Controller medicine logged successfully! Streak updated.", 
+                                        Toast.LENGTH_LONG).show();
+                                    finish();
+                                }
                             });
                         }
                     });
@@ -349,6 +304,12 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                                 // Check low rescue badge after test badge
                                 motivationService.checkLowRescueBadge(() -> {
                                     // Delay finish to allow dialog to show
+                                    if (!badgeEarned) {
+                                        Toast.makeText(LogRescueInhalerActivity.this, 
+                                            "Rescue inhaler use logged successfully!", 
+                                            Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
                                 });
                             });
                         }
@@ -357,7 +318,14 @@ public class LogRescueInhalerActivity extends AppCompatActivity {
                             android.util.Log.e("Inventory", "Failed to decrement: " + error);
                             showLoading(false);
                             motivationService.checkFirstRescueBadge(() -> {
-                                motivationService.checkLowRescueBadge(() -> {});
+                                motivationService.checkLowRescueBadge(() -> {
+                                    if (!badgeEarned) {
+                                        Toast.makeText(LogRescueInhalerActivity.this, 
+                                            "Rescue inhaler use logged successfully!", 
+                                            Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                });
                             });
                         }
                     });

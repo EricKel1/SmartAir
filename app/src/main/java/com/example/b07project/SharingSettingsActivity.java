@@ -59,11 +59,29 @@ public class SharingSettingsActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         Map<String, Object> sharing = (Map<String, Object>) documentSnapshot.get("sharingSettings");
                         if (sharing != null) {
-                            switchMedication.setChecked(Boolean.TRUE.equals(sharing.get("medication")));
+                            // Medication (check new key, fallback to old key)
+                            boolean med = Boolean.TRUE.equals(sharing.get("medication"));
+                            if (!sharing.containsKey("medication") && Boolean.TRUE.equals(sharing.get("rescueLogs"))) {
+                                med = true;
+                            }
+                            switchMedication.setChecked(med);
+
                             switchDailyCheckIn.setChecked(Boolean.TRUE.equals(sharing.get("symptoms")));
                             switchSafetyMonitoring.setChecked(Boolean.TRUE.equals(sharing.get("pef")));
-                            switchTriggerPatterns.setChecked(Boolean.TRUE.equals(sharing.get("patterns")));
-                            switchStatisticsReports.setChecked(Boolean.TRUE.equals(sharing.get("stats")));
+
+                            // Patterns (check new key, fallback to old key)
+                            boolean patterns = Boolean.TRUE.equals(sharing.get("patterns"));
+                            if (!sharing.containsKey("patterns") && Boolean.TRUE.equals(sharing.get("triggers"))) {
+                                patterns = true;
+                            }
+                            switchTriggerPatterns.setChecked(patterns);
+
+                            // Stats (check new key, fallback to old key)
+                            boolean stats = Boolean.TRUE.equals(sharing.get("stats"));
+                            if (!sharing.containsKey("stats") && Boolean.TRUE.equals(sharing.get("summaryCharts"))) {
+                                stats = true;
+                            }
+                            switchStatisticsReports.setChecked(stats);
                         }
                     }
                 })

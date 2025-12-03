@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,6 +34,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     private TextView tvAdherenceDetails;
     private RecyclerView rvAdherenceCalendar;
     private ImageView btnConfigureSchedule;
+    private ImageButton btnBack;
     
     private PEFRepository pefRepository;
     private ScheduleRepository scheduleRepository;
@@ -68,6 +70,7 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
         rvAdherenceCalendar.setLayoutManager(new GridLayoutManager(this, 7)); // 7 days a week
         
         btnConfigureSchedule = findViewById(R.id.btnConfigureSchedule);
+        btnBack = findViewById(R.id.btnBack4);
         
         if (childName != null) {
             tvChildNameHeader.setText(childName);
@@ -75,6 +78,10 @@ public class ParentChildDashboardActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
+
         // Quick Actions
         setupCardListener(R.id.cardLogMedicine, LogRescueInhalerActivity.class);
         setupCardListener(R.id.cardDailyCheckIn, DailySymptomCheckInActivity.class);

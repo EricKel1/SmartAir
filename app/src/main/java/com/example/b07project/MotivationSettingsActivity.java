@@ -22,6 +22,11 @@ public class MotivationSettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_motivation_settings);
 
         motivationService = new MotivationService(this);
+        
+        String childId = getIntent().getStringExtra("EXTRA_CHILD_ID");
+        if (childId != null && !childId.isEmpty()) {
+            motivationService.setTargetUserId(childId);
+        }
 
         initializeViews();
         loadCurrentSettings();
